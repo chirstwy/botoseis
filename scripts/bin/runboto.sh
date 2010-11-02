@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export BOTOSEIS_ROOT=/home/gabriel/NetBeansProjetcs/botoseis/scripts
+export BOTOSEIS_ROOT=/home/gabriel/NetBeansProjects/botoseis/scripts
 export PATH=$PATH:$BOTOSEIS_ROOT/bin
 
 javacmd=java

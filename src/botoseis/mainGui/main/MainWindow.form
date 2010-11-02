@@ -39,10 +39,18 @@
             </MenuItem>
             <MenuItem class="javax.swing.JMenuItem" name="fileClose">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Close project"/>
+                <Property name="text" type="java.lang.String" value="Close Project"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileCloseActionPerformed"/>
+              </Events>
+            </MenuItem>
+            <MenuItem class="javax.swing.JMenuItem" name="fileDelete">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Delete Project"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fileDeleteActionPerformed"/>
               </Events>
             </MenuItem>
             <MenuItem class="javax.swing.JSeparator" name="jSeparator16">

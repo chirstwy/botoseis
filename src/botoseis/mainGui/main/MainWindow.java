@@ -31,6 +31,7 @@ import botoseis.mainGui.usrproject.ProcessingLine;
 import botoseis.mainGui.utils.AboutDlg;
 import botoseis.mainGui.utils.DefaultNode;
 import botoseis.mainGui.utils.RendererTree;
+import botoseis.mainGui.utils.Utils;
 import botoseis.mainGui.workflows.WorkflowModel;
 
 public class MainWindow extends javax.swing.JFrame {
@@ -167,28 +168,6 @@ public class MainWindow extends javax.swing.JFrame {
             }
 
         }
-
-        java.io.File f = new java.io.File(botoseis_root + File.separator + "default");
-
-        if (!f.exists()) {
-            if (f.mkdir()) {
-                m_activeProject = new UserProject(f.getParentFile().getAbsolutePath(),
-                        f.getName());
-                String str = labelProjectExplorer.getName();
-                str += f.getName();
-                labelProjectExplorer.setText(str);
-
-                fileNewLine.setEnabled(true);
-                m_activeProject.save();
-                DefaultNode root = new DefaultNode(m_activeProject, DefaultNode.PROJECT_TYPE);
-                rootNode.add(root);
-                areaExplorer.updateUI();
-                fileNewLine.setEnabled(true);
-                fileNewWorkflow.setEnabled(true);
-            }
-        } else {
-            new OpenProjectAction(f.getAbsolutePath()).exec();
-        }
     }
 
     /** This method is called from within the constructor to
@@ -250,6 +229,7 @@ public class MainWindow extends javax.swing.JFrame {
         jSeparator15 = new javax.swing.JSeparator();
         fileOpen = new javax.swing.JMenuItem();
         fileClose = new javax.swing.JMenuItem();
+        fileDelete = new javax.swing.JMenuItem();
         jSeparator16 = new javax.swing.JSeparator();
         fileSave = new javax.swing.JMenuItem();
         jSeparator17 = new javax.swing.JSeparator();
@@ -672,13 +652,21 @@ public class MainWindow extends javax.swing.JFrame {
         fileOpen.setText("Open Project...");
         FileMenu.add(fileOpen);
 
-        fileClose.setText("Close project");
+        fileClose.setText("Close Project");
         fileClose.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 fileCloseActionPerformed(evt);
             }
         });
         FileMenu.add(fileClose);
+
+        fileDelete.setText("Delete Project");
+        fileDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileDeleteActionPerformed(evt);
+            }
+        });
+        FileMenu.add(fileDelete);
         FileMenu.add(jSeparator16);
 
         fileSave.setText("Save");
@@ -860,7 +848,7 @@ private void btnRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:
         java.io.File jobF = new java.io.File(jobHome);
 
         if (jobF.mkdir()) {
-                botoseis.mainGui.workflows.WorkflowJob njob = new botoseis.mainGui.workflows.WorkflowJob(jobHome, m_currentWorkflow, m_consoleArea);
+            botoseis.mainGui.workflows.WorkflowJob njob = new botoseis.mainGui.workflows.WorkflowJob(jobHome, m_currentWorkflow, m_consoleArea);
             njob.start();
 
 
@@ -1149,11 +1137,22 @@ private void areaExplorerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRS
                         }
                     });
 
+                    JMenuItem delete = new JMenuItem("Delete");
+                    delete.setToolTipText("Close project");
+                    delete.addActionListener(new java.awt.event.ActionListener() {
+
+                        public void actionPerformed(java.awt.event.ActionEvent evt) {
+                            fileDeleteActionPerformed(evt);
+                        }
+                    });
+
 
                     jpm.add(close);
                     jpm.addSeparator();
                     jpm.add(newLine);
                     jpm.add(newFlow);
+                    jpm.addSeparator();
+                    jpm.add(delete);
                 }
 
             }
@@ -1177,6 +1176,22 @@ private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) 
 //
 //    }
 }//GEN-LAST:event_menuRecoveryProjectActionPerformed
+
+private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileDeleteActionPerformed
+
+//        JOptionPane.showMessageDialog(null,m_activeProject.getprojHomeDir());
+        if (JOptionPane.showConfirmDialog(null, m_activeProject.getprojHomeDir()+"\nAre you sure?") == JOptionPane.YES_OPTION) {
+
+            if (m_activeProject != null) {
+                Utils.deleteFile(new File(m_activeProject.getprojHomeDir()));
+                rootNode.remove(getProject(m_activeProject));
+                ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
+                m_activeProject = null;
+                JOptionPane.showMessageDialog(null, "Project successfully deleted");
+            }
+        }
+    
+}//GEN-LAST:event_fileDeleteActionPerformed
 
     private void loadJobsHistory(botoseis.mainGui.workflows.WorkflowModel m) {
         String home = m.getHomedir() + "/jobs";
@@ -1206,6 +1221,8 @@ private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) 
         processesList.setModel(tm);
 
     }
+
+  
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu FileMenu;
     private javax.swing.JMenu HelpMenu2;
@@ -1223,6 +1240,7 @@ private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) 
     private javax.swing.JButton btnSaveProject;
     private javax.swing.JComboBox comboProcessesList;
     private javax.swing.JMenuItem fileClose;
+    private javax.swing.JMenuItem fileDelete;
     private javax.swing.JMenuItem fileExit;
     private javax.swing.JMenuItem fileNew;
     private javax.swing.JMenuItem fileNewLine;
@@ -1422,7 +1440,7 @@ private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) 
             DefaultNode root = new DefaultNode(m_activeProject, DefaultNode.PROJECT_TYPE);
             m_activeProject.fillLinesList(root);
             rootNode.add(root);
-            areaExplorer.updateUI();
+            ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
 
             fileNewLine.setEnabled(true);
             fileNewWorkflow.setEnabled(true);
@@ -1449,7 +1467,7 @@ private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) 
                 rootNode.add(root);
                 fileNewLine.setEnabled(true);
                 fileNewWorkflow.setEnabled(true);
-                areaExplorer.updateUI();
+                ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
             }
         }
     }
@@ -1489,7 +1507,7 @@ private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) 
 
 //                    areaExplorer.setModel(tm);
 //                    areaExplorer.setRootVisible(true);
-                    areaExplorer.updateUI();
+                    ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
                     fileNewLine.setEnabled(true);
                     fileNewWorkflow.setEnabled(true);
                 } else {
