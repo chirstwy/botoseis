@@ -1335,9 +1335,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             float f1 = sc.getF1();
             float f2 = sc.getF2();
             float d1 = sc.getD1();
-            float d2 = sc.getD2();
-            JOptionPane.showMessageDialog(null,"f1: "+f1+" f2:"+f2+" n1:"+n1+
-                    " n2:"+n2+" d1:"+d1+" d2:"+d2+ " dv:"+dv+" fv:"+fv);
+            float d2 = sc.getD2();          
             gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);
 
             gfx.SVColorScale csActor = new gfx.SVColorScale(3, gfx.SVColorScale.LSBFirst);
