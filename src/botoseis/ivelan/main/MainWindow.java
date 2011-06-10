@@ -1126,7 +1126,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
         String cdpF = String.format("cdp-%d.su", cdp);
 
-        cmd.add("/nis/gabriel/BOTOSEIS_ROOT/bin/bvsuwind.sh");
+        cmd.add("bvsuwind.sh");
         cmd.add(m_inputFilePath);
         cmd.add(cdpF);
         cmd.add(String.format("min=%d", cdp));
@@ -1143,7 +1143,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             cmd.clear();
 
-            cmd.add("/nis/gabriel/BOTOSEIS_ROOT/bin/bvsunmo.sh");
+            cmd.add("bvsunmo.sh");
             cmd.add(cdpF);
 
             String nmoF = String.format("nmo-%d.su", cdp);
@@ -1223,7 +1223,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
         String outF = String.format(m_tmpDir + "/" + "cdp-%d.su", cdp);
 
-        cmd.add("/nis/gabriel/BOTOSEIS_ROOT/bin/bvsuwind.sh");
+        cmd.add("bvsuwind.sh");
         cmd.add(m_inputFilePath);
         cmd.add(outF);
 //        cmd.add(String.format("min=%d", cdp));
@@ -1303,7 +1303,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 //        String smapF = String.format(m_tmpDir + "/" + "cdpsPraVelan2.su", cdp);
         String smapF = String.format(m_tmpDir + "/" + "smap-%d.su", cdp);
 
-        cmd.add("/nis/gabriel/BOTOSEIS_ROOT/bin/bvsuvelan.sh");
+        cmd.add("bvsuvelan.sh");
         cmd.add(cdpF);
         cmd.add(smapF);
         cmd.add(String.format("%.2f", tpow));
@@ -1380,7 +1380,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             int dcdp = cdps[1] - cdps[0];
 
-            cmd.add("/nis/gabriel/BOTOSEIS_ROOT/bin/bvcvs.sh");
+            cmd.add("bvcvs.sh");
             cmd.add(m_inputFilePath);
             cmd.add(cvsF);
             cmd.add(String.format("%d", cdp));
@@ -1840,11 +1840,9 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     public static void main(final String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
-            public void run() {
-                String[] d = {"cdpmin=1","cdpint=10","tmin=0","tmax=2000","cvsnp=10","cvsw=1000","cdpmax=1000"
-                        ,"vmin=1000","vmax=4000","nv=100","in=/nis/gabriel/BOTOSEIS_ROOT/tmp/cdps.su"};
+            public void run() {               
                 MainWindow wnd = new MainWindow();
-                wnd.setCommandLine(d);
+                wnd.setCommandLine(args);
                 wnd.setVisible(true);
             }
         });

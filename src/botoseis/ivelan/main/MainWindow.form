@@ -316,9 +316,9 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="panelC" alignment="0" pref="294" max="32767" attributes="0"/>
-                      <Component id="panelSemblance" alignment="0" pref="294" max="32767" attributes="0"/>
-                      <Component id="colorbarPanel" alignment="0" pref="294" max="32767" attributes="0"/>
+                      <Component id="panelC" alignment="0" pref="295" max="32767" attributes="0"/>
+                      <Component id="panelSemblance" alignment="0" pref="295" max="32767" attributes="0"/>
+                      <Component id="colorbarPanel" alignment="0" pref="295" max="32767" attributes="0"/>
                   </Group>
                 </DimensionLayout>
                 <DimensionLayout dim="1">
@@ -381,9 +381,9 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="panelD" alignment="0" pref="272" max="32767" attributes="0"/>
+                  <Component id="panelD" alignment="0" pref="273" max="32767" attributes="0"/>
                   <Component id="colorbarPanel2" alignment="0" max="32767" attributes="0"/>
-                  <Component id="panelCVS" alignment="0" pref="272" max="32767" attributes="0"/>
+                  <Component id="panelCVS" alignment="0" pref="273" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
@@ -436,7 +436,7 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="jLabel2" alignment="0" pref="268" max="32767" attributes="0"/>
+                      <Component id="jLabel2" alignment="0" pref="269" max="32767" attributes="0"/>
                   </Group>
                 </DimensionLayout>
                 <DimensionLayout dim="1">
