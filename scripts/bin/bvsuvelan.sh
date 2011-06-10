@@ -18,5 +18,5 @@ echo "$@" > out.txt
 
 sugain tpow=$3 < $1 |
 sufilter f=$4 amps=$5 |
-suvelan nv=$6 dv=$7 fv=$8 |
+suvelan nv=$6 dv=$7 fv=$8 dtratio=1 |
 sushw key=f2 a=$8 | sushw key=d2 a=$7 > $2

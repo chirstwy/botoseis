@@ -57,7 +57,7 @@ public class MainWindow extends javax.swing.JFrame {
         m_velocityAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Velocity (m/s)");
         m_cvsVelocityAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Velocity (m/s)");
 
-        m_timeAxis.setLimits(0.0f, 1.0f);
+        m_timeAxis.setLimits(m_tmin, m_tmax);
 
         gfxPanelCDP.setAxisY(m_timeAxis);
         gfxPanelCDP.setAxisX(m_cdpOffsetAxis);
@@ -155,7 +155,7 @@ public class MainWindow extends javax.swing.JFrame {
                 if (m_ready) {
                     float v = gfxPanelSemblance.getMouseLocation().fx;
                     float t = gfxPanelSemblance.getMouseLocation().fy;
-
+                    System.err.println(v+" "+t);
                     updateNMOCurve(v, t, 0.0f, 0.0f);
                     updateVelocityPicksCurve(v, t);
 
@@ -238,7 +238,7 @@ public class MainWindow extends javax.swing.JFrame {
                 if (m_ready) {
                     float v = gfxPanelCVS.getMouseLocation().fx;
                     float t = gfxPanelCVS.getMouseLocation().fy;
-
+                    System.out.println(v+" "+t);
                     updateNMOCurve(v, t, 0.0f, 0.0f);
                     updateVelocityPicksCurve(v, t);
 
@@ -772,8 +772,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void updateNMOCurve(float v, float t, float anis1, float anis2) {
-        int np = nmoCurve.getNumberOfPoint();
-
+        int np = nmoCurve.getNumberOfPoint();        
         float[] lm = gfxPanelCDP.getAxisLimits();
 
         float[] x = new float[np];
@@ -1312,6 +1311,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         cmd.add(String.format("%.0f", dv));
         cmd.add(String.format("%.0f", fv));
 
+
         try {
             String[] sa = new String[cmd.size()];
             cmd.toArray(sa);
@@ -1320,7 +1320,6 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             for (int i = 0; i < sa.length; i++) {
                 exec += sa[i]+"  ";
             }
-
             Process p = Runtime.getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
             System.out.println(exec);
 //            Process p = Runtime.getRuntime().exec(exec);
@@ -1336,7 +1335,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             float f2 = sc.getF2();
             float d1 = sc.getD1();
             float d2 = sc.getD2();          
-            gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);
+            gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);         
 
             gfx.SVColorScale csActor = new gfx.SVColorScale(3, gfx.SVColorScale.LSBFirst);
             csActor.setData(sc.getData(), n1, f1, d1, n2, fv, dv);
