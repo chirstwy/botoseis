@@ -10,8 +10,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTextArea;
 import botoseis.mainGui.workflows.ProcessModel;
+import java.io.IOException;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -59,24 +63,21 @@ public class WorkflowProcess {
                         if (flowLog.checkError()) {
                             status = WorkflowJob.ERROR;
                         }
-
                         if (status.equals(WorkflowJob.STOPPED)) {
                             break;
                         }
 
                         b = m_proc.getErrorStream().read();
                     } while (b >= 0);
-                    m_proc.getErrorStream().close();
 
-                    if (last) {
-                        m_timeStop = System.currentTimeMillis();
-                    }
-
+//                    if (last) {
+//                        m_timeStop = System.currentTimeMillis();
+//                    }
                     if (!status.equals(WorkflowJob.STOPPED)) {
-                            status = WorkflowJob.COMPLETED;
+                        status = WorkflowJob.COMPLETED;
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             }
         };
@@ -111,19 +112,32 @@ public class WorkflowProcess {
                     if (last) {
                         BufferedInputStream buffInp = new BufferedInputStream(getInputStream());
                         int b = 0;
-                        while((b = buffInp.read()) >=0){
-                            m_console.append(String.valueOf((char)b));
+                        while ((b = buffInp.read()) >= 0) {
+                            m_console.append(String.valueOf((char) b));
                         }
                         m_console.append("---------------------------- END ---------------------------------");
                         m_console.append("\n\n");
+                         m_timeStop = System.currentTimeMillis();
                         status = WorkflowJob.COMPLETED;
                         getInputStream().close();
+                        getErrorStream().close();
                         getOutStream().close();
-
+                        input.close();
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+//                    e.printStackTrace();
+                    try{
+                        getInputStream().close();
+                        getErrorStream().close();
+                        getOutStream().close();
+                        input.close();
+                        m_timeStop = System.currentTimeMillis();
+                        m_console.append("---------------------------- END ---------------------------------");
+                        m_console.append("\n\n");
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
                     status = WorkflowJob.STOPPED;
                 }
             }
@@ -174,7 +188,15 @@ public class WorkflowProcess {
     }
 
     public void stop() {
-        status = WorkflowJob.STOPPED;
+        try {
+            m_proc.getErrorStream().close();
+            m_proc.getInputStream().close();
+            m_proc.getOutputStream().close();
+            status = WorkflowJob.STOPPED;
+            m_proc.destroy();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
 
     public boolean isReviewed() {

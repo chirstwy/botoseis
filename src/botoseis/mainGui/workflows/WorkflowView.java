@@ -291,7 +291,7 @@ public class WorkflowView extends javax.swing.JPanel implements java.util.Observ
                 if (m_insertMarkPosition == i) {
 
                     // g.fillOval(px-arrw-8, py2-arrw-10, 8, 8);
-                    ImageIcon img = new javax.swing.ImageIcon(getClass().getResource("/pics/seta01.png"));
+                    ImageIcon img = new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/seta01.png"));
                     g.drawImage(img.getImage(), px - arrw - 30, py2 - arrw - 10, null);
 
                 }
