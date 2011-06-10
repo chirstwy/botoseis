@@ -16,6 +16,7 @@ import gfx.SVPoint2D;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Vector;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -1226,10 +1227,8 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         cmd.add("bvsuwind.sh");
         cmd.add(m_inputFilePath);
         cmd.add(outF);
-//        cmd.add(String.format("min=%d", cdp));
-//        cmd.add(String.format("max=%d", cdp));
-        cmd.add(String.format("%d", cdp));
-        cmd.add(String.format("%d", cdp));
+        cmd.add(String.format("min=%d", cdp));
+        cmd.add(String.format("max=%d", cdp));
 
         try {
 
@@ -1337,7 +1336,8 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             float f2 = sc.getF2();
             float d1 = sc.getD1();
             float d2 = sc.getD2();
-
+            JOptionPane.showMessageDialog(null,"f1: "+f1+" f2:"+f2+" n1:"+n1+
+                    " n2:"+n2+" d1:"+d1+" d2:"+d2+ " dv:"+dv+" fv:"+fv);
             gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);
 
             gfx.SVColorScale csActor = new gfx.SVColorScale(3, gfx.SVColorScale.LSBFirst);
