@@ -66,21 +66,21 @@
             </MenuItem>
           </SubComponents>
         </Menu>
-        <Menu class="javax.swing.JMenu" name="jMenu4">
+        <Menu class="javax.swing.JMenu" name="menuAuto">
           <Properties>
             <Property name="mnemonic" type="int" value="80"/>
-            <Property name="text" type="java.lang.String" value="Parameters" noResource="true"/>
+            <Property name="text" type="java.lang.String" value="Auto" noResource="true"/>
           </Properties>
-          <SubComponents>
-            <MenuItem class="javax.swing.JMenuItem" name="ShowPerc">
-              <Properties>
-                <Property name="text" type="java.lang.String" value="image"/>
-              </Properties>
-              <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ShowPercActionPerformed"/>
-              </Events>
-            </MenuItem>
-          </SubComponents>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="menuPicking">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Picking"/>
+          </Properties>
+        </Menu>
+        <Menu class="javax.swing.JMenu" name="menuHelp">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Help"/>
+          </Properties>
         </Menu>
       </SubComponents>
     </Menu>
@@ -331,7 +331,7 @@
             <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="btnHeaderItemStateChanged"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="jButton1">
+        <Component class="javax.swing.JButton" name="btnGain">
           <Properties>
             <Property name="text" type="java.lang.String" value="Gain"/>
             <Property name="focusable" type="boolean" value="false"/>
@@ -339,7 +339,18 @@
             <Property name="verticalTextPosition" type="int" value="3"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnGainActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="btnClip">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Clip"/>
+            <Property name="focusable" type="boolean" value="false"/>
+            <Property name="horizontalTextPosition" type="int" value="0"/>
+            <Property name="verticalTextPosition" type="int" value="3"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnClipActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>

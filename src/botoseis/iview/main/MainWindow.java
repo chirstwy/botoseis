@@ -239,7 +239,8 @@ public class MainWindow extends javax.swing.JFrame {
         btnNext = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JToolBar.Separator();
         btnHeader = new javax.swing.JToggleButton();
-        jButton1 = new javax.swing.JButton();
+        btnGain = new javax.swing.JButton();
+        btnClip = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         menuExit = new javax.swing.JMenuItem();
@@ -249,8 +250,9 @@ public class MainWindow extends javax.swing.JFrame {
         menuViewContour = new javax.swing.JMenuItem();
         menuViewImageWiggle = new javax.swing.JMenuItem();
         menuViewImageContour = new javax.swing.JMenuItem();
-        jMenu4 = new javax.swing.JMenu();
-        ShowPerc = new javax.swing.JMenuItem();
+        menuAuto = new javax.swing.JMenu();
+        menuPicking = new javax.swing.JMenu();
+        menuHelp = new javax.swing.JMenu();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -376,16 +378,27 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jToolBar1.add(btnHeader);
 
-        jButton1.setText("Gain");
-        jButton1.setFocusable(false);
-        jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnGain.setText("Gain");
+        btnGain.setFocusable(false);
+        btnGain.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnGain.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnGain.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnGainActionPerformed(evt);
             }
         });
-        jToolBar1.add(jButton1);
+        jToolBar1.add(btnGain);
+
+        btnClip.setText("Clip");
+        btnClip.setFocusable(false);
+        btnClip.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnClip.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnClip.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClipActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnClip);
 
         jMenu1.setText("File");
 
@@ -443,18 +456,15 @@ public class MainWindow extends javax.swing.JFrame {
 
         jMenuBar1.add(menuView);
 
-        jMenu4.setMnemonic('P');
-        jMenu4.setText("Parameters"); // NOI18N
+        menuAuto.setMnemonic('P');
+        menuAuto.setText("Auto"); // NOI18N
+        jMenuBar1.add(menuAuto);
 
-        ShowPerc.setText("image");
-        ShowPerc.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ShowPercActionPerformed(evt);
-            }
-        });
-        jMenu4.add(ShowPerc);
+        menuPicking.setText("Picking");
+        jMenuBar1.add(menuPicking);
 
-        jMenuBar1.add(jMenu4);
+        menuHelp.setText("Help");
+        jMenuBar1.add(menuHelp);
 
         setJMenuBar(jMenuBar1);
 
@@ -485,7 +495,11 @@ public class MainWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
 private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-    setModeView("wiggle");
+    if (!stackData) {
+        setModeView("wiggle");
+    } else {
+        setModeView("image");
+    }
     showView();
     repaint();
 }//GEN-LAST:event_formWindowOpened
@@ -543,9 +557,43 @@ private void btnNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
 }//GEN-LAST:event_btnNextActionPerformed
 
-private void ShowPercActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ShowPercActionPerformed
+private void btnPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPreviousActionPerformed
+    // TODO add your handling code here:
+
+    if (mapSection.indexOf(section.getTraces()) > 0) {
+        section.setTraces(mapSection.get(mapSection.indexOf(section.getTraces()) - 1));
+    }
+    showView();
+
+}//GEN-LAST:event_btnPreviousActionPerformed
+
+private void btnHeaderItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_btnHeaderItemStateChanged
+    if (evt.getStateChange() == ItemEvent.DESELECTED) {
+        float fx[] = new float[0];
+        float fy[] = new float[0];
+        getmHeader().update(fx, fy);
+        getGfxPanelCDP().repaint();
+        dlgHeader.dispose();
+    }
+}//GEN-LAST:event_btnHeaderItemStateChanged
+
+private void btnGainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGainActionPerformed
+    // TODO add your handling code here:
+
+    dlgGain.setVisible(true);
+    if (dlgGain.isApply()) {
+        showView();
+    }
+}//GEN-LAST:event_btnGainActionPerformed
+
+private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuExitActionPerformed
+    System.exit(0);
+}//GEN-LAST:event_menuExitActionPerformed
+
+private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClipActionPerformed
+    // TODO add your handling code here:
     DialogParametersImage dlgparamimag = new DialogParametersImage(this, true, m_csActor, m_wgActor, panelCDP);
-    dlgparamimag.setLocation(ShowPerc.getLocation());
+
     if (m_csActor != null) {
         imageperc = m_csActor.getImagPerc();
         imagebalance = (int) m_csActor.getImagimagebalance();
@@ -580,42 +628,7 @@ private void ShowPercActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         }
         panelCDP.repaint();
     }
-
-// TODO add your handling code here:
-}//GEN-LAST:event_ShowPercActionPerformed
-
-private void btnPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPreviousActionPerformed
-    // TODO add your handling code here:
-
-    if (mapSection.indexOf(section.getTraces()) > 0) {
-        section.setTraces(mapSection.get(mapSection.indexOf(section.getTraces()) - 1));
-    }
-    showView();
-
-}//GEN-LAST:event_btnPreviousActionPerformed
-
-private void btnHeaderItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_btnHeaderItemStateChanged
-    if (evt.getStateChange() == ItemEvent.DESELECTED) {
-        float fx[] = new float[0];
-        float fy[] = new float[0];
-        getmHeader().update(fx, fy);
-        getGfxPanelCDP().repaint();
-        dlgHeader.dispose();
-    }
-}//GEN-LAST:event_btnHeaderItemStateChanged
-
-private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-    // TODO add your handling code here:
-
-    dlgGain.setVisible(true);
-    if (dlgGain.isApply()) {
-        showView();
-    }
-}//GEN-LAST:event_jButton1ActionPerformed
-
-private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuExitActionPerformed
-        System.exit(0);
-}//GEN-LAST:event_menuExitActionPerformed
+}//GEN-LAST:event_btnClipActionPerformed
 
     private void onGraphicsPanelMouseReleased(MouseEvent e) {
         float lm[] = getGfxPanelCDP().getAxisLimits();
@@ -645,7 +658,7 @@ private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
             trc2 = section.getTraces().size() - 1;
         }
 
-        System.out.println(getSkeyValueAt(trc1)+"  "+getSkeyValueAt(trc2));
+        System.out.println(getSkeyValueAt(trc1) + "  " + getSkeyValueAt(trc2));
         m_cdpOffsetAxis.setLimits(getSkeyValueAt(trc1), getSkeyValueAt(trc2));
 
         m_timeAxis.setLimits(lm[0], lm[1]);
@@ -806,7 +819,7 @@ private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         m_wgActor.setData(section.getData(), n1, f1, d1, n2, f2, d2);
         m_wgActor.setPercParameters(wigbperc);
         getGfxPanelCDP().addActor(m_wgActor);
-        if(value){
+        if (value) {
             m_wgActor.applyGain(false, 0, 0, 1, false, false, 0, 0, 0, 1, false, false, false, true, 1, 1, 0, false);
         }
         applyGain(m_wgActor);
@@ -971,20 +984,22 @@ private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenuItem ShowPerc;
+    private javax.swing.JButton btnClip;
+    private javax.swing.JButton btnGain;
     private javax.swing.JToggleButton btnHeader;
     private javax.swing.JButton btnNext;
     private javax.swing.JButton btnPrevious;
     private javax.swing.JToggleButton btnZoom;
     private javax.swing.JPanel colorbarPanel;
-    private javax.swing.JButton jButton1;
     private javax.swing.JMenu jMenu1;
-    private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar1;
+    private javax.swing.JMenu menuAuto;
     private javax.swing.JMenuItem menuExit;
+    private javax.swing.JMenu menuHelp;
+    private javax.swing.JMenu menuPicking;
     private javax.swing.JMenu menuView;
     private javax.swing.JMenuItem menuViewContour;
     private javax.swing.JMenuItem menuViewImage;

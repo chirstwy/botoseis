@@ -9084,7 +9084,7 @@
                     <Name>IMS-UFPA</Name>
                     <email>null</email>
                 </Author>
-                <Executable>/nis/gabriel/BOTOSEIS_ROOT/bin/runivelan.sh</Executable>
+                <Executable>runivelan.sh</Executable>
                 <CallConvention>SU</CallConvention>
                 <HasInput>true</HasInput>
                 <HasOutput>false</HasOutput>

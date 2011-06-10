@@ -175,11 +175,7 @@ public class WorkflowJob {
          if(flowLog.checkError()){
             return WorkflowJob.ERROR;
         }
-        for (int i = 0; i < m_procList.size(); i++) {
-            WorkflowProcess wp = m_procList.get(i);
-            return wp.getStatus();
-        }       
-        return "unknown";
+        return m_procList.lastElement().getStatus();
     }
 
     String m_homeDir;

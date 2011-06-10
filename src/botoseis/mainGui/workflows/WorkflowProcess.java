@@ -73,9 +73,7 @@ public class WorkflowProcess {
                     }
 
                     if (!status.equals(WorkflowJob.STOPPED)) {
-                        if (!flowLog.checkError()) {
                             status = WorkflowJob.COMPLETED;
-                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -118,6 +116,7 @@ public class WorkflowProcess {
                         }
                         m_console.append("---------------------------- END ---------------------------------");
                         m_console.append("\n\n");
+                        status = WorkflowJob.COMPLETED;
                         getInputStream().close();
                         getOutStream().close();
 
