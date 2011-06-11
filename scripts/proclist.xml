@@ -9061,139 +9061,117 @@
         </Group>
     </Group>
     <Group>
-        <Title>WIT</Title>
+        <Title>BOTOSEIS</Title> 
         <Group>
-            <Title>Stacking</Title>
-        </Group>
-        <Group>
-            <Title>Tomography</Title>
-        </Group>
-        <Group>
-            <Title>Migration</Title>
-        </Group>
-    </Group>
-    <Group>
-        <Title>IMS</Title>
-        <Group>
-            <Title>Interactive Modules</Title>
-            <Process>
-                <Title>iVELAN</Title>
-                <ID>iVELAN-1243605062506</ID>
-                <Brief>Interactive velocity analysis</Brief>
-                <Author>
-                    <Name>IMS-UFPA</Name>
-                    <email>null</email>
-                </Author>
-                <Executable>runivelan.sh</Executable>
-                <CallConvention>SU</CallConvention>
-                <HasInput>true</HasInput>
-                <HasOutput>false</HasOutput>
-                <ParametersGroup>
-                    <Name>output</Name>
-                    <Description>Output options</Description>
-                    <Parameter>
-                        <Name>velpicks</Name>
-                        <Type>File path</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>File path for output velocity picks</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                </ParametersGroup>
-                <ParametersGroup>
-                    <Name>CDPOpt</Name>
-                    <Description>CDPs options</Description>
-                    <Parameter>
-                        <Name>cdpmin</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>First CDP</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                    <Parameter>
-                        <Name>cdpmax</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Last CDP</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                    <Parameter>
-                        <Name>cdpint</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Number of CDPs to skip</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                    <Parameter>
-                        <Name>tmin</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Time min.</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                    <Parameter>
-                        <Name>tmax</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Time max.</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                </ParametersGroup>
-                <ParametersGroup>
-                    <Name>semblance</Name>
-                    <Description>Semblance options</Description>
-                    <Parameter>
-                        <Name>vmin</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>First velocity value</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                    <Parameter>
-                        <Name>vmax</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Last velocity value</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                    <Parameter>
-                        <Name>nv</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Number of velocity values</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                </ParametersGroup>
-                <ParametersGroup>
-                    <Name>CVSOpt</Name>
-                    <Description>CVS Options</Description>
-                    <Parameter>
-                        <Name>cvsw</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Number of cdps for windowing</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                    <Parameter>
-                        <Name>cvsnp</Name>
-                        <Type>Numeric</Type>
-                        <KeyValuePair>true</KeyValuePair>
-                        <Brief>Number of CVS panels</Brief>
-                        <DefaultValue>null</DefaultValue>
-                    </Parameter>
-                </ParametersGroup>
-            </Process>
-        </Group>
-        <Group>
-            <Title>Stacking</Title>
-        </Group>
-        <Group>
-            <Title>Migration</Title>
-        </Group>
-    </Group>
-    <Group>
-        <Title>botoseis</Title>
+            <Title>Interactive</Title>
+       <Process>
+            <Title>botoVelan</Title>
+            <ID>iVELAN-1243605062506</ID>
+            <Brief>Interactive velocity analysis</Brief>
+            <Author>
+                <Name>IMS-UFPA</Name>
+                <email>null</email>
+            </Author>
+            <Executable>runivelan.sh</Executable>
+            <CallConvention>SU</CallConvention>
+            <HasInput>true</HasInput>
+            <HasOutput>false</HasOutput>
+            <ParametersGroup>
+                <Name>output</Name>
+                <Description>Output options</Description>
+                <Parameter>
+                    <Name>velpicks</Name>
+                    <Type>File path</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>File path for output velocity picks</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+            </ParametersGroup>
+            <ParametersGroup>
+                <Name>CDPOpt</Name>
+                <Description>CDPs options</Description>
+                <Parameter>
+                    <Name>cdpmin</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>First CDP</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+                <Parameter>
+                    <Name>cdpmax</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Last CDP</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+                <Parameter>
+                    <Name>cdpint</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Number of CDPs to skip</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+                <Parameter>
+                    <Name>tmin</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Time min.</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+                <Parameter>
+                    <Name>tmax</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Time max.</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+            </ParametersGroup>
+            <ParametersGroup>
+                <Name>semblance</Name>
+                <Description>Semblance options</Description>
+                <Parameter>
+                    <Name>vmin</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>First velocity value</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+                <Parameter>
+                    <Name>vmax</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Last velocity value</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+                <Parameter>
+                    <Name>nv</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Number of velocity values</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+            </ParametersGroup>
+            <ParametersGroup>
+                <Name>CVSOpt</Name>
+                <Description>CVS Options</Description>
+                <Parameter>
+                    <Name>cvsw</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Number of cdps for windowing</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+                <Parameter>
+                    <Name>cvsnp</Name>
+                    <Type>Numeric</Type>
+                    <KeyValuePair>true</KeyValuePair>
+                    <Brief>Number of CVS panels</Brief>
+                    <DefaultValue>null</DefaultValue>
+                </Parameter>
+            </ParametersGroup>
+        </Process>
         <Process>
-            <Title>botoiView</Title>
+            <Title>botoView</Title>
             <ID>botoiView-1280442914558</ID>
             <Brief>Botoseis</Brief>
             <Author>
@@ -9243,5 +9221,9 @@
                 </Parameter>
             </ParametersGroup>
         </Process>
+        </Group>
+    </Group>
+    <Group>
+        <Title>MADAGASCAR</Title>
     </Group>
 </BotoSeis>
