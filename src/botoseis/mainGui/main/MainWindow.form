@@ -423,15 +423,11 @@
               <Layout>
                 <DimensionLayout dim="0">
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="m_processOutputTab" alignment="0" pref="730" max="32767" attributes="1"/>
                               <Component id="jPanel17" alignment="0" max="32767" attributes="1"/>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <Component id="btnClean" min="-2" pref="84" max="-2" attributes="0"/>
-                                  <EmptySpace pref="646" max="32767" attributes="0"/>
-                              </Group>
                           </Group>
                       </Group>
                   </Group>
@@ -441,10 +437,7 @@
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="jPanel17" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="m_processOutputTab" pref="227" max="32767" attributes="1"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="btnClean" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="m_processOutputTab" pref="274" max="32767" attributes="1"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -524,14 +517,6 @@
                     </Container>
                   </SubComponents>
                 </Container>
-                <Component class="javax.swing.JButton" name="btnClean">
-                  <Properties>
-                    <Property name="text" type="java.lang.String" value="Clean"/>
-                  </Properties>
-                  <Events>
-                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCleanActionPerformed"/>
-                  </Events>
-                </Component>
               </SubComponents>
             </Container>
           </SubComponents>

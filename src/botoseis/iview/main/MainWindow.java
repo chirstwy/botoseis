@@ -167,6 +167,7 @@ public class MainWindow extends javax.swing.JFrame {
             public void mouseMoved(MouseEvent e) {
                 //throw new UnsupportedOperationException("Not supported yet.");
                 SVActor act = null;
+                
                 if (wiggle) {
                     act = m_wgActor;
                 } else {
@@ -196,7 +197,7 @@ public class MainWindow extends javax.swing.JFrame {
                 if (trace < section.getTraces().size()) {
                     SUHeader h = section.getTraces().get(trace).getHeader();
                     tfBar.setText(String.format("fldr: %d tracf: %d cdp: %d ep: %d offset: %d  time: %.2f  amp: %.7f ", h.fldr, h.tracf, h.cdp, h.ep, h.offset, p.fy, act.getData()[n]));
-                }
+                }              
 //                System.out.println(p.ix+"  "+p.iy+"  "+p.fx+" "+p.fy);
             }
         });

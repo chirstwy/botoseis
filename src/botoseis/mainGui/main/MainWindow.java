@@ -33,6 +33,11 @@ import botoseis.mainGui.utils.DefaultNode;
 import botoseis.mainGui.utils.RendererTree;
 import botoseis.mainGui.utils.Utils;
 import botoseis.mainGui.workflows.WorkflowModel;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class MainWindow extends javax.swing.JFrame {
 
@@ -143,6 +148,21 @@ public class MainWindow extends javax.swing.JFrame {
         jSplitPane3.setOneTouchExpandable(true);
         jSplitPane4.setOneTouchExpandable(true);
 
+        JPanel jp = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton clear = new JButton(new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/trash.png")));
+        clear.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                 m_consoleArea.setText("");
+            }
+        });
+        clear.setPreferredSize(new Dimension(16,16));
+        clear.setToolTipText("Clear console");
+        jp.add(new JLabel("Console"));
+        jp.add(clear);
+        m_processOutputTab.setTabComponentAt(0, jp);
+
     }
 
     public void openRecentProject() {
@@ -201,7 +221,6 @@ public class MainWindow extends javax.swing.JFrame {
         m_processOutputTab = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
         m_consoleArea = new javax.swing.JTextArea();
-        btnClean = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jSplitPane4 = new javax.swing.JSplitPane();
         jPanel1 = new javax.swing.JPanel();
@@ -414,13 +433,6 @@ public class MainWindow extends javax.swing.JFrame {
 
         m_processOutputTab.addTab("CONSOLE", jScrollPane1);
 
-        btnClean.setText("Clean");
-        btnClean.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCleanActionPerformed(evt);
-            }
-        });
-
         javax.swing.GroupLayout jPanel16Layout = new javax.swing.GroupLayout(jPanel16);
         jPanel16.setLayout(jPanel16Layout);
         jPanel16Layout.setHorizontalGroup(
@@ -429,20 +441,14 @@ public class MainWindow extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(m_processOutputTab, javax.swing.GroupLayout.DEFAULT_SIZE, 730, Short.MAX_VALUE)
-                    .addComponent(jPanel17, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanel16Layout.createSequentialGroup()
-                        .addComponent(btnClean, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(646, Short.MAX_VALUE))))
+                    .addComponent(jPanel17, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         jPanel16Layout.setVerticalGroup(
             jPanel16Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel16Layout.createSequentialGroup()
                 .addComponent(jPanel17, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(m_processOutputTab, javax.swing.GroupLayout.DEFAULT_SIZE, 227, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnClean)
-                .addContainerGap())
+                .addComponent(m_processOutputTab, javax.swing.GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE))
         );
 
         jSplitPane1.setBottomComponent(jPanel16);
@@ -1163,10 +1169,6 @@ private void areaExplorerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRS
     }
 }//GEN-LAST:event_areaExplorerMouseClicked
 
-private void btnCleanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCleanActionPerformed
-    m_consoleArea.setText("");
-}//GEN-LAST:event_btnCleanActionPerformed
-
 private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuRecoveryProjectActionPerformed
 //    JFileChooser jfc = new JFileChooser();
 //    jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1228,7 +1230,6 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
     private javax.swing.JMenu HelpMenu2;
     private javax.swing.JTree areaExplorer;
     private javax.swing.JButton btnAddProcessToWorkflow;
-    private javax.swing.JButton btnClean;
     private javax.swing.JButton btnMoveBottom;
     private javax.swing.JButton btnMoveDown;
     private javax.swing.JButton btnMoveTop;
