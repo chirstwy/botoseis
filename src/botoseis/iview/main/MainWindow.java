@@ -9,6 +9,7 @@ import botoseis.iview.dialogs.DialogGain;
 import botoseis.iview.dialogs.DialogHeaderTrace;
 import botoseis.iview.dialogs.DialogParametersImage;
 import gfx.SVActor;
+import gfx.AxisPanel;
 import gfx.SVPoint2D;
 import gfx.SVXYPlot;
 import java.awt.BorderLayout;
@@ -36,6 +37,7 @@ public class MainWindow extends javax.swing.JFrame {
         initComponents();
 
         panelCDP.add(gfxPanelCDP);
+         gfxPanelCDP.setVisibleScrollBar(true);
 
         m_timeAxis = new gfx.SVAxis(gfx.SVAxis.VERTICAL, gfx.SVAxis.AXIS_LEFT, "Time (s)");
         m_cdpOffsetAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Offset (km)");
@@ -52,14 +54,17 @@ public class MainWindow extends javax.swing.JFrame {
         gfxPanelCDP.addXYPlot(mHeader);
 
 
-        gfxPanelCDP.setAxisY(m_timeAxis);
-        gfxPanelCDP.setAxisX(m_cdpOffsetAxis);
+        
 
         AxisPanel panelT = new AxisPanel(m_timeAxis);
         panelA.add(panelT);
 
         AxisPanel panelU = new AxisPanel(m_cdpOffsetAxis);
         panelB.add(panelU);
+        
+        gfxPanelCDP.setAxisPanelX(panelU);
+        gfxPanelCDP.setAxisPanelY(panelT);
+
         gfxPanelCDP.addKeyListener(new java.awt.event.KeyAdapter() {
 
             @Override
@@ -213,7 +218,8 @@ public class MainWindow extends javax.swing.JFrame {
 
         dlgHeader = new DialogHeaderTrace(this, false);
         dlgGain = new DialogGain(this, true);
-
+        
+       
 
     }
 
@@ -761,6 +767,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
             }
 
             m_cdpOffsetAxis.setLimits(min, max);
+            m_cdpOffsetAxis.setLimitsInitial(min, max);
             m_cdpOffsetAxis.setTitle(skey.toUpperCase());
             panelPkey.removeAll();
 
@@ -798,6 +805,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
             }
 
             m_cdpOffsetAxis.setLimits(min, max);
+            m_cdpOffsetAxis.setLimitsInitial(min, max);
         }
         panelB.repaint();
     }
@@ -942,7 +950,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
             stackData = false;
         } else {
             stackData = true;
-        }
+        }       
     }
 
     public int getSkeyValueAt(int iTrace) {

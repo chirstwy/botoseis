@@ -58,6 +58,8 @@ public class AxisPanel extends javax.swing.JPanel {
             javax.swing.JOptionPane.showMessageDialog(this, e);
         }
     }
+
+  
     // Variables declaration
     gfx.SVAxis m_axis = null;
 }
