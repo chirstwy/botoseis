@@ -37,7 +37,7 @@ public class MainWindow extends javax.swing.JFrame {
         initComponents();
 
         panelCDP.add(gfxPanelCDP);
-         gfxPanelCDP.setVisibleScrollBar(true);
+        gfxPanelCDP.setVisibleScrollBar(true);
 
         m_timeAxis = new gfx.SVAxis(gfx.SVAxis.VERTICAL, gfx.SVAxis.AXIS_LEFT, "Time (s)");
         m_cdpOffsetAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Offset (km)");
@@ -54,14 +54,14 @@ public class MainWindow extends javax.swing.JFrame {
         gfxPanelCDP.addXYPlot(mHeader);
 
 
-        
+
 
         AxisPanel panelT = new AxisPanel(m_timeAxis);
         panelA.add(panelT);
 
         AxisPanel panelU = new AxisPanel(m_cdpOffsetAxis);
         panelB.add(panelU);
-        
+
         gfxPanelCDP.setAxisPanelX(panelU);
         gfxPanelCDP.setAxisPanelY(panelT);
 
@@ -172,7 +172,7 @@ public class MainWindow extends javax.swing.JFrame {
             public void mouseMoved(MouseEvent e) {
                 //throw new UnsupportedOperationException("Not supported yet.");
                 SVActor act = null;
-                
+
                 if (wiggle) {
                     act = m_wgActor;
                 } else {
@@ -202,7 +202,7 @@ public class MainWindow extends javax.swing.JFrame {
                 if (trace < section.getTraces().size()) {
                     SUHeader h = section.getTraces().get(trace).getHeader();
                     tfBar.setText(String.format("fldr: %d tracf: %d cdp: %d ep: %d offset: %d  time: %.2f  amp: %.7f ", h.fldr, h.tracf, h.cdp, h.ep, h.offset, p.fy, act.getData()[n]));
-                }              
+                }
 //                System.out.println(p.ix+"  "+p.iy+"  "+p.fx+" "+p.fy);
             }
         });
@@ -218,8 +218,8 @@ public class MainWindow extends javax.swing.JFrame {
 
         dlgHeader = new DialogHeaderTrace(this, false);
         dlgGain = new DialogGain(this, true);
-        
-       
+
+
 
     }
 
@@ -719,7 +719,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
 
         getGfxPanelCDP().setAxesLimits(f1, f1 + n1 * d1, f2, f2 + n2 * d2);
-        m_timeAxis.setLimits(f1, f1 + n1 * d1);        
+        m_timeAxis.setLimits(f1, f1 + n1 * d1);
 //        m_cdpOffsetAxis.setLimits(f2, f2 + n2 * d2);
 
         setAxis();
@@ -737,34 +737,16 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         if (!stackData) {
             float min = 0, max = 0;
             int key = 0;
-            if (pkey == null || pkey.equals("") || pkey.equalsIgnoreCase("ffid")) {
-                key = section.getTraces().get(0).getHeader().fldr;
-                pkey = "ffid";
-            } else {
-                if (pkey.equalsIgnoreCase("ep")) {
-                    pkey = "ep";
-                    key = section.getTraces().get(0).getHeader().ep;
-                } else {
-                    if (pkey.equalsIgnoreCase("cdp")) {
-                        pkey = "cdp";
-                        key = section.getTraces().get(0).getHeader().cdp;
-                    } else {
-                        pkey = "ffid";
-                        setAxis();
-                        return;
-                    }
-                }
+            if (pkey == null || pkey.equals("")) {
+                pkey = "ep";
             }
-
-            if (skey == null || skey.equals("") || !skey.equals("offset")) {
-                min = section.getTraces().get(0).getHeader().tracf;
-                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().tracf;
+            if (skey == null || skey.equals("")) {
                 skey = "tracf";
-            } else {
-                min = section.getTraces().get(0).getHeader().offset;
-                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().offset;
-                skey = "offset";
             }
+            key = section.getTraces().get(0).getHeader().getValue(pkey);
+
+            min = section.getTraces().get(0).getHeader().getValue(skey);
+            max = section.getTraces().get(section.getTraces().size() - 1).getHeader().getValue(skey);
 
             m_cdpOffsetAxis.setLimits(min, max);
             m_cdpOffsetAxis.setLimitsInitial(min, max);
@@ -785,25 +767,35 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         } else {
 
             int min = 0, max = 0;
-            if (pkey != null && pkey.equals("offset")) {
-                min = section.getTraces().get(0).getHeader().offset;
-                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().offset;
-                skey = "offset";
-                if (min == max) {
-                    JOptionPane.showMessageDialog(null, "Offset invalid! \nAssuming pkey: cdp");
-                    min = section.getTraces().get(0).getHeader().cdp;
-                    max = section.getTraces().get(section.getTraces().size() - 1).getHeader().cdp;
-                    pkey = "cdp";
-                    skey = "cdp";
-                }
-            } else {
-                pkey = "cdp";
-                skey = "cdp";
-                m_cdpOffsetAxis.setTitle(skey.toUpperCase());
-                min = section.getTraces().get(0).getHeader().cdp;
-                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().cdp;
+//            if (pkey != null && pkey.equals("offset")) {
+//                min = section.getTraces().get(0).getHeader().offset;
+//                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().offset;
+//                skey = "offset";
+//                if (min == max) {
+//                    JOptionPane.showMessageDialog(null, "Offset invalid! \nAssuming pkey: cdp");
+//                    min = section.getTraces().get(0).getHeader().cdp;
+//                    max = section.getTraces().get(section.getTraces().size() - 1).getHeader().cdp;
+//                    pkey = "cdp";
+//                    skey = "cdp";
+//                }
+//            } else {
+//                pkey = "cdp";
+//                skey = "cdp";
+//                m_cdpOffsetAxis.setTitle(skey.toUpperCase());
+//                min = section.getTraces().get(0).getHeader().cdp;
+//                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().cdp;
+//            }
+            if (pkey == null || pkey.trim().equals("")) {
+                skey = pkey = "cdp";
             }
-
+            min = section.getTraces().get(0).getHeader().getValue(skey);
+            max = section.getTraces().get(section.getTraces().size() - 1).getHeader().getValue(skey);
+            if (min == max) {
+                JOptionPane.showMessageDialog(null, pkey + " invalid! \nAssuming pkey: cdp");
+                pkey = skey = "cdp";
+            }
+            min = section.getTraces().get(0).getHeader().getValue(skey);
+            max = section.getTraces().get(section.getTraces().size() - 1).getHeader().getValue(skey);
             m_cdpOffsetAxis.setLimits(min, max);
             m_cdpOffsetAxis.setLimitsInitial(min, max);
         }
@@ -949,7 +941,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
             stackData = false;
         } else {
             stackData = true;
-        }       
+        }
     }
 
     public int getSkeyValueAt(int iTrace) {
@@ -966,6 +958,10 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
             } else {
                 if (skey.equals("cdp")) {
                     return trace.getHeader().cdp;
+                } else {
+                    if (skey.equals("fldr")) {
+                        return trace.getHeader().fldr;
+                    }
                 }
             }
         }
