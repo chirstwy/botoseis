@@ -719,7 +719,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
 
         getGfxPanelCDP().setAxesLimits(f1, f1 + n1 * d1, f2, f2 + n2 * d2);
-        m_timeAxis.setLimits(f1, f1 + n1 * d1);
+        m_timeAxis.setLimits(f1, f1 + n1 * d1);        
 //        m_cdpOffsetAxis.setLimits(f2, f2 + n2 * d2);
 
         setAxis();
@@ -818,7 +818,6 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         float f2 = section.getF2();
         float d1 = section.getD1();
         float d2 = section.getD2();
-
         getGfxPanelCDP().setAxesLimits(f1, f1 + n1 * d1, f2, f2 + n2 * d2);
         m_timeAxis.setLimits(f1, f1 + n1 * d1);
         //m_cdpOffsetAxis.setLimits(f2, f2 + n2 * d2);
