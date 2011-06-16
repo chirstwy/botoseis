@@ -26,7 +26,7 @@ public class Utils {
     }
 
     public static String getCurrentPath(){
-        return currentPath;
+        return currentPath == null ? "" : currentPath;
     }
     public static void setCurrentPath(String path){
         currentPath = path;
