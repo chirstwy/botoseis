@@ -1448,13 +1448,14 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
         }
 
         public void actionPerformed(ActionEvent e) {
-            javax.swing.JFileChooser jfc = new javax.swing.JFileChooser();
+            javax.swing.JFileChooser jfc = new javax.swing.JFileChooser(new File(Utils.getCurrentPath()));
             jfc.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
             int ret = jfc.showOpenDialog(null);
 
             if (ret == javax.swing.JFileChooser.APPROVE_OPTION) {
                 String prjHome = jfc.getSelectedFile().toString();
+                Utils.setCurrentPath(prjHome);
 
                 m_activeProject = new UserProject(prjHome, "noname");
                 m_activeProject.open(prjHome);

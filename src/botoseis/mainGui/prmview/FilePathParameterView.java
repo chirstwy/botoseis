@@ -4,8 +4,10 @@
  */
 package botoseis.mainGui.prmview;
 
+import botoseis.mainGui.utils.Utils;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 public class FilePathParameterView extends ParameterView {
 
@@ -24,10 +26,13 @@ public class FilePathParameterView extends ParameterView {
         btn.addActionListener(new ActionListener() {
 
             public void actionPerformed(ActionEvent ev) {
-                javax.swing.JFileChooser jfc = new javax.swing.JFileChooser();                
+                javax.swing.JFileChooser jfc = new javax.swing.JFileChooser(
+                        new File(m_input.getText().trim().equals("") ? Utils.getCurrentPath() :
+                             new File(m_input.getText()).exists() ? m_input.getText() : Utils.getCurrentPath()));
                 int ret = jfc.showOpenDialog(null);
                 if (ret == javax.swing.JFileChooser.APPROVE_OPTION) {
-                    m_input.setText(jfc.getSelectedFile().toString());                                        
+                    m_input.setText(jfc.getSelectedFile().toString());
+                    Utils.setCurrentPath(m_input.getText());
                 }
             }
         });

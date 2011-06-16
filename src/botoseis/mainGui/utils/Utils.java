@@ -12,6 +12,7 @@ import java.util.Date;
  * @author gabriel
  */
 public class Utils {
+    private static String currentPath;
 
     public static String getDateFormated(Date date) {
         if (date == null)
@@ -24,6 +25,12 @@ public class Utils {
         return System.getenv("BOTOSEIS_ROOT").toString();
     }
 
+    public static String getCurrentPath(){
+        return currentPath;
+    }
+    public static void setCurrentPath(String path){
+        currentPath = path;
+    }
 
      public static void deleteFile(java.io.File file) {
         if (file.listFiles() != null) {
