@@ -206,6 +206,8 @@ public class WorkflowProcess {
     public void setReviewed(boolean reviewed) {
         this.reviewed = reviewed;
     }
+    
+   
 
     public String getStrReviewd() {
         if (this.isReviewed()) {

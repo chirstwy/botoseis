@@ -726,7 +726,7 @@ public class EditProcessDlg extends javax.swing.JDialog {
                     if (dlg.getResponseOk() && !name.isEmpty()) {
                         p.name = name;
                         p.brief = dlg.getDescription();
-                        p.type = dlg.getType();
+                        p.type = dlg.getType_();
                         p.optionValues = dlg.getOptionsValues();
                         p.defaultValue = dlg.getDefaultValue();
                         p.keyvaluePair = dlg.isKeyValuPairSelected();
@@ -820,7 +820,7 @@ public class EditProcessDlg extends javax.swing.JDialog {
 
                     p.name = name;
                     p.brief = dlg.getDescription();
-                    p.type = dlg.getType();
+                    p.type = dlg.getType_();
                     p.optionValues = dlg.getOptionsValues();
                     p.keyvaluePair = dlg.isKeyValuPairSelected();
                     p.optionsListSelectionType = dlg.getOptionsSelectionType();

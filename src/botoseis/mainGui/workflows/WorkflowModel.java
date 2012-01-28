@@ -203,7 +203,7 @@ public class WorkflowModel extends java.util.Observable {
         if ((index >= 0) && (index < (m_procList.size() - 1))) {
             WorkflowProcess p = m_procList.elementAt(index);
             m_procList.remove(index);
-            m_procList.add(index + 1, p);
+            m_procList.add(index + 1, p);                       
             setChanged();
             notifyObservers();
         }

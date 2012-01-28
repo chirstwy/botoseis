@@ -1,7 +1,11 @@
 package botoseis.mainGui.workflows;
 
+import botoseis.mainGui.utils.Utils;
 import java.awt.Color;
-import botoseis.mainGui.workflows.WorkflowProcess;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.JLabel;
 
 /*
  * 
@@ -49,6 +53,18 @@ public class DefaultProcessView extends javax.swing.JPanel {
             m_title.setBorder(javax.swing.BorderFactory.createEtchedBorder(
                     javax.swing.border.EtchedBorder.RAISED, java.awt.Color.red, java.awt.Color.red));
             m_proc.getParametersSource().showParameters(m_prmHostPanel);
+            JLabel jl = new JLabel(Utils.getPathProcess(m_workView.getModel().getHomedir()));
+            jl.setFont(new Font("Times new roman", Font.BOLD, 16));
+            GridBagConstraints c = new GridBagConstraints();
+            c.fill = GridBagConstraints.HORIZONTAL;
+            c.ipady = 0;       //reset to default
+            c.weighty = 1.0;   //request any extra vertical space
+            c.anchor = GridBagConstraints.PAGE_END; //bottom of space
+            c.insets = new Insets(10, 0, 0, 0);  //top padding
+            c.gridx = 0;       //aligned with button 2
+            c.gridwidth = 2;   //2 columns wide
+            c.gridy = 2;       //third row
+            m_prmHostPanel.add(jl,c);
             m_prmHostPanel.updateUI();
         } else {
             m_title.setBorder(javax.swing.BorderFactory.createEtchedBorder(
@@ -61,6 +77,7 @@ public class DefaultProcessView extends javax.swing.JPanel {
         processMouseEvent(evt);
     }
     //-------------------------------
+
     public WorkflowProcess getWorkflowProcess() {
         return m_proc;
     }
@@ -71,11 +88,11 @@ public class DefaultProcessView extends javax.swing.JPanel {
 
     public void comment() {
         m_title.setForeground(new Color(0, 0, 0));
-        m_title.setEnabled(false);      
-        
+        m_title.setEnabled(false);
+
         setColor(Color.lightGray);
         setEnabled(false);
-        
+
         m_proc.setReviewed(true);
     }
 

@@ -31,6 +31,15 @@ public class Utils {
     public static void setCurrentPath(String path){
         currentPath = path;
     }
+    
+    public static String getPathProcess(String path){
+        String[] split  = path.split("/");
+        String ret = "";
+        ret += split[split.length-3];
+        ret += "/"+split[split.length-2];
+        ret += "/"+split[split.length-1];
+        return ret;
+    }
 
      public static void deleteFile(java.io.File file) {
         if (file.listFiles() != null) {

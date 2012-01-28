@@ -143,9 +143,9 @@ public class WorkflowView extends javax.swing.JPanel implements java.util.Observ
                         super.mouseClicked(evt);
 
                         DefaultProcessView procView = (DefaultProcessView) evt.getSource();
-
+                        onProcessMouseClicked(evt);
                         if (evt.getButton() == MouseEvent.BUTTON3) {
-                            onProcessMouseClicked(evt);
+                            
                             JPopupMenu jpm = new JPopupMenu();
                             JMenu_Item jmi;
                             if (procView.getWorkflowProcess().isReviewed()) {
@@ -209,9 +209,7 @@ public class WorkflowView extends javax.swing.JPanel implements java.util.Observ
                             jpm.add(remove);
                             jpm.show(procView, evt.getX(), evt.getY());
                             //
-                        } else {
-                            onProcessMouseClicked(evt);
-                        }
+                        } 
 
                     }
                     //-------------------------------//
@@ -428,6 +426,11 @@ public class WorkflowView extends javax.swing.JPanel implements java.util.Observ
         m_selectedProcess = s;
     }
 
+    public void setSelectedProcess(int i) {
+        m_procList.get(i).setSelected(true);
+        m_selectedProcess = m_procList.get(i);
+    }
+
     public void onProcessMouseEntered(java.awt.event.MouseEvent evt) {
     }
 
@@ -457,6 +460,10 @@ public class WorkflowView extends javax.swing.JPanel implements java.util.Observ
             }
         }
 
+    }
+
+    public WorkflowModel getModel() {
+        return m_model;
     }
 
     public int getSizeProcessList() {

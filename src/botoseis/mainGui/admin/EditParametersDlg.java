@@ -216,7 +216,9 @@ public class EditParametersDlg extends javax.swing.JDialog {
         prmDesc.setText(s);
     }
 
-    public String getType() {
+
+    
+    public String getType_() {
         return prmType.getSelectedItem().toString();
     }
 

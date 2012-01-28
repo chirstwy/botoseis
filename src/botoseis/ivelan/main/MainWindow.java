@@ -15,6 +15,7 @@ import gfx.AxisPanel;
 import gfx.SVPoint2D;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Vector;
 import javax.swing.JOptionPane;
 
@@ -1304,7 +1305,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         cmd.add("bvsuvelan.sh");
         cmd.add(cdpF);
         cmd.add(smapF);
-        cmd.add(String.format("%.2f", tpow));
+        cmd.add(String.format(Locale.ENGLISH,"%.2f", tpow));
         cmd.add(filter);
         cmd.add(amps);
         cmd.add(String.format("%d", nv));
@@ -1810,11 +1811,11 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
                     tnmo = "tnmo=";
                     vnmo = "vnmo=";
                     for (int j = 0; j < n; j++) {
-                        tnmo += String.format("%.2f", picks.get(j).fy);
+                        tnmo += String.format(Locale.ENGLISH,"%.2f", picks.get(j).fy);
                         if (j < n - 1) {
                             tnmo += ",";
                         }
-                        vnmo += String.format("%.2f", picks.get(j).fx);
+                        vnmo += String.format(Locale.ENGLISH,"%.2f", picks.get(j).fx);
                         if (j < n - 1) {
                             vnmo += ",";
                         }
