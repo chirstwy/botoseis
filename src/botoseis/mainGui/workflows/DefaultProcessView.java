@@ -63,7 +63,7 @@ public class DefaultProcessView extends javax.swing.JPanel {
             c.insets = new Insets(10, 0, 0, 0);  //top padding
             c.gridx = 0;       //aligned with button 2
             c.gridwidth = 2;   //2 columns wide
-            c.gridy = 2;       //third row
+            c.gridy = 100;       //third row
             m_prmHostPanel.add(jl,c);
             m_prmHostPanel.updateUI();
         } else {
