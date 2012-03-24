@@ -8,16 +8,28 @@
  * Federal University of Para, Brazil.
  * Faculty of Geophysics.
  */
-package botoseis.ivelan.main;
+package botoseis.ivelan.temp;
 
-import gfx.GfxPanelColorbar;
 import gfx.AxisPanel;
+import gfx.GfxPanelColorbar;
+import gfx.SVColorScale;
 import gfx.SVPoint2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Locale;
+import java.util.SortedMap;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
 import java.util.Vector;
-import javax.swing.JOptionPane;
+import javax.swing.AbstractAction;
 
 /**
  *
@@ -27,6 +39,20 @@ public class MainWindow extends javax.swing.JFrame {
     /** Creates new form MainWindow */
     public MainWindow() {
         initComponents();
+
+        Runtime run = Runtime.getRuntime();
+        run.addShutdownHook(new Thread() {
+
+            @Override
+            public void run() {
+                System.out.println("Saving picks by ShutdownHook.");
+                savePicksToFile(new File(m_picksFilePath));
+            }
+        });
+
+        btnVelModel.setAction(new CreateVelocityModelAction());
+
+
 
         panelCDP.add(gfxPanelCDP);
         panelSemblance.add(gfxPanelSemblance);
@@ -50,8 +76,44 @@ public class MainWindow extends javax.swing.JFrame {
         intervalCurve.setDrawColor(java.awt.Color.blue);
         intervalCurve.setVisible(false);
         intervalCurve.setDrawSize(2);
-        
+
+        lastVelocityCurve.setLineStyle(gfx.SVXYPlot.SOLID);
+        lastVelocityCurve.setPointsVisible(false);
+        lastVelocityCurve.setDrawColor(java.awt.Color.green);
+        lastVelocityCurve.setVisible(false);
+        lastVelocityCurve.setDrawSize(2);
+
+        velocityCurve.setLineStyle(gfx.SVXYPlot.SOLID);
+        velocityCurve.setPointsVisible(false);
+        velocityCurve.setDrawColor(java.awt.Color.blue);
+        velocityCurve.setVisible(false);
+        velocityCurve.setDrawSize(2);
+
+        lineGuideCVS.setLineStyle(gfx.SVXYPlot.SOLID);
+        lineGuideCVS.setPointsVisible(false);
+        lineGuideCVS.setDrawColor(java.awt.Color.red);
+        lineGuideCVS.setVisible(true);
+        lineGuideCVS.setDrawSize(1);
+
+        lineGuideSemblaceY.setLineStyle(gfx.SVXYPlot.SOLID);
+        lineGuideSemblaceY.setPointsVisible(false);
+        lineGuideSemblaceY.setDrawColor(java.awt.Color.red);
+        lineGuideSemblaceY.setVisible(true);
+        lineGuideSemblaceY.setDrawSize(1);
+        lineGuideSemblaceX.setLineStyle(gfx.SVXYPlot.SOLID);
+        lineGuideSemblaceX.setPointsVisible(false);
+        lineGuideSemblaceX.setDrawColor(java.awt.Color.red);
+        lineGuideSemblaceX.setVisible(true);
+        lineGuideSemblaceX.setDrawSize(1);
+
         gfxPanelSemblance.addXYPlot(intervalCurve);
+        gfxPanelSemblance.addXYPlot(lastVelocityCurve);
+        gfxPanelSemblance.addXYPlot(velocityCurve);
+
+        gfxPanelSemblance.addXYPlot(lineGuideSemblaceY);
+        gfxPanelSemblance.addXYPlot(lineGuideSemblaceX);
+        gfxPanelCVS.addXYPlot(lineGuideCVS);
+
 
         m_timeAxis = new gfx.SVAxis(gfx.SVAxis.VERTICAL, gfx.SVAxis.AXIS_LEFT, "Time (s)");
         m_cdpOffsetAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Offset (km)");
@@ -92,32 +154,34 @@ public class MainWindow extends javax.swing.JFrame {
                     int vx = gfxPanelSemblance.getMouseLocation().ix;
                     int vy = gfxPanelSemblance.getMouseLocation().iy;
 
-                    int EPS = 20; // 10 pixels
+                    int EPSX = 60; // 10 pixels
+                    int EPSY = 200; // 10 pixels
 
                     gfx.SVPoint2D pickP = null;
                     int removedIndex = -1;
                     switch (evt.getButton()) {
                         case java.awt.event.MouseEvent.BUTTON1:
                             // Remove pick if user clicked over a previous pick.
+
+                            addVelocityPick(v, t, vx, vy);
+                            updateVelocityModel();
+                            updateIntervalVelocity();
+                            m_isModified = true;
+                            break;
+                        case java.awt.event.MouseEvent.BUTTON2:
                             for (int i = 0; i < m_currentCDPVelocityPicks.size(); i++) {
+                                System.out.println(i);
                                 pickP = m_currentCDPVelocityPicks.get(i);
-                                if ((Math.abs(pickP.ix - vx) <= EPS) && (Math.abs(pickP.iy - vy) <= EPS)) {
+                                if ((Math.abs(pickP.fx - v) <= EPSX) && (Math.abs(pickP.fy - t) * 100 <= EPSY)) {
                                     removedIndex = i;
                                     break;
                                 }
                             }
-
                             if (removedIndex >= 0) {
                                 m_currentCDPVelocityPicks.remove(removedIndex);
                                 m_isModified = true;
-                            } else {
-                                addVelocityPick(v, t, vx, vy);
-                                updateIntervalVelocity();
-                                m_isModified = true;
+                                updateVelocityModel();
                             }
-
-                            break;
-                        case java.awt.event.MouseEvent.BUTTON3:
                             break;
                     }
                 }
@@ -143,6 +207,7 @@ public class MainWindow extends javax.swing.JFrame {
                 if (m_ready) {
                     m_cursorOverSemblancemap = true;
                     nmoCurve.setVisible(true);
+                    gfxPanelSemblance.requestFocus();
 
                     repaint();
                 }
@@ -156,14 +221,71 @@ public class MainWindow extends javax.swing.JFrame {
                 if (m_ready) {
                     float v = gfxPanelSemblance.getMouseLocation().fx;
                     float t = gfxPanelSemblance.getMouseLocation().fy;
-//                    System.err.println(v+" "+t);
+                    System.err.println(v + " " + t);
                     updateNMOCurve(v, t, 0.0f, 0.0f);
                     updateVelocityPicksCurve(v, t);
-
+                    updateLineGuide(v, t);
                     gfxPanelCDP.repaint();
                 }
             }
         });
+
+        gfxPanelSemblance.addKeyListener(new KeyListener() {
+
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                SVColorScale m_csActor = null;
+                if (gfxPanelSemblance.getActors().size() > 0) {
+                    m_csActor = (SVColorScale) gfxPanelSemblance.getActors().get(0);
+                }
+                if (m_csActor != null) {
+                    switch (e.getKeyChar()) {
+                        case 'r':
+                            m_csActor.setColorMapType(SVColorScale.RGB);
+                            m_csActor.nextColormap();
+                            m_currMapColor = m_csActor.getCurrColorMapIndex();
+                            m_currMapType = SVColorScale.RGB;
+                            break;
+                        case 'h':
+                            m_csActor.setColorMapType(SVColorScale.HSV);
+                            m_csActor.nextColormap();
+                            m_currMapColor = m_csActor.getCurrColorMapIndex();
+                            m_currMapType = SVColorScale.HSV;
+                            break;
+                        case 'R':
+                            m_csActor.setColorMapType(SVColorScale.RGB);
+                            m_csActor.previousColormap();
+                            m_currMapColor = m_csActor.getCurrColorMapIndex();
+                            m_currMapType = SVColorScale.RGB;
+                            break;
+                        case 'H':
+                            m_csActor.setColorMapType(SVColorScale.HSV);
+                            m_csActor.previousColormap();
+                            m_currMapColor = m_csActor.getCurrColorMapIndex();
+                            m_currMapType = SVColorScale.HSV;
+                            break;
+                        default:
+                            m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, GfxPanelColorbar.HORIZONTAL);
+                            colorbarPanel.removeAll();
+                            colorbarPanel.add(m_gfxPanelColorbar);
+                            break;
+
+                    }
+                    repaint();
+                    m_gfxPanelColorbar.repaint();
+                }
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent arg0) {
+            }
+        });
+
 
         gfxPanelCVS.addMouseListener(new java.awt.event.MouseAdapter() {
 
@@ -176,31 +298,33 @@ public class MainWindow extends javax.swing.JFrame {
                     int vx = gfxPanelCVS.getMouseLocation().ix;
                     int vy = gfxPanelCVS.getMouseLocation().iy;
 
-                    int EPS = 20; // 10 pixels
+                    int EPSX = 60; // 10 pixels
+                    int EPSY = 200; // 10 pixels
 
                     gfx.SVPoint2D pickP = null;
                     int removedIndex = -1;
                     switch (evt.getButton()) {
                         case java.awt.event.MouseEvent.BUTTON1:
                             // Remove pick if user clicked over a previous pick.
+                            addVelocityPick(v, t, vx, vy);
+                            updateVelocityModel();
+                            updateIntervalVelocity();
+                            m_isModified = true;
+                            break;
+                        case java.awt.event.MouseEvent.BUTTON2:
                             for (int i = 0; i < m_currentCDPVelocityPicks.size(); i++) {
                                 pickP = m_currentCDPVelocityPicks.get(i);
-                                if ((Math.abs(pickP.ix - vx) <= EPS) && (Math.abs(pickP.iy - vy) <= EPS)) {
+//                                if ((Math.abs(pickP.ix - vx) <= EPS) && (Math.abs(pickP.iy - vy) <= EPS)) {
+                                if ((Math.abs(pickP.fx - v) <= EPSX) && (Math.abs(pickP.fy - t) <= EPSY)) {
                                     removedIndex = i;
                                     break;
                                 }
                             }
-
                             if (removedIndex >= 0) {
                                 m_currentCDPVelocityPicks.remove(removedIndex);
                                 m_isModified = true;
-                            } else {
-                                addVelocityPick(v, t, vx, vy);
-                                m_isModified = true;
+                                updateVelocityModel();
                             }
-
-                            break;
-                        case java.awt.event.MouseEvent.BUTTON3:
                             break;
                     }
                 }
@@ -239,9 +363,10 @@ public class MainWindow extends javax.swing.JFrame {
                 if (m_ready) {
                     float v = gfxPanelCVS.getMouseLocation().fx;
                     float t = gfxPanelCVS.getMouseLocation().fy;
-//                    System.out.println(v+" "+t);
+//                    System.out.println(v + " " + t);
                     updateNMOCurve(v, t, 0.0f, 0.0f);
                     updateVelocityPicksCurve(v, t);
+                    updateLineGuide(v, t);
 
                     gfxPanelCDP.repaint();
                 }
@@ -251,11 +376,14 @@ public class MainWindow extends javax.swing.JFrame {
         fileNew.setVisible(false);
         fileOpen.setVisible(false);
         fileClose.setVisible(false);
-        fileSave.setVisible(false);
-        fileExportPicks.setVisible(false);
+//        fileSave.setVisible(false);
+//        fileExportPicks.setVisible(false);
         jSeparator3.setVisible(false);
         jSeparator4.setVisible(false);
         jSeparator1.setVisible(false);
+        m_currMapType = SVColorScale.HSV;
+        m_currMapColor = 2;
+
 
     }
 
@@ -292,6 +420,7 @@ public class MainWindow extends javax.swing.JFrame {
         jSeparator2 = new javax.swing.JToolBar.Separator();
         btnNMO = new javax.swing.JButton();
         btnCDP = new javax.swing.JButton();
+        btnVelModel = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         fileNew = new javax.swing.JMenuItem();
@@ -299,6 +428,7 @@ public class MainWindow extends javax.swing.JFrame {
         fileClose = new javax.swing.JMenuItem();
         jSeparator3 = new javax.swing.JSeparator();
         fileSave = new javax.swing.JMenuItem();
+        fileSavePicks = new javax.swing.JMenuItem();
         jSeparator4 = new javax.swing.JSeparator();
         fileExportPicks = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JSeparator();
@@ -306,6 +436,8 @@ public class MainWindow extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         optionsVelan = new javax.swing.JMenuItem();
         menuShowIntervalVel = new javax.swing.JCheckBoxMenuItem();
+        menuShowLastVelocity = new javax.swing.JCheckBoxMenuItem();
+        menuShowVelocityGuide = new javax.swing.JCheckBoxMenuItem();
         jMenu3 = new javax.swing.JMenu();
         aboutMenu = new javax.swing.JMenuItem();
 
@@ -333,7 +465,6 @@ public class MainWindow extends javax.swing.JFrame {
         panelA.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         panelA.setLayout(new javax.swing.BoxLayout(panelA, javax.swing.BoxLayout.LINE_AXIS));
 
-        colorbarPanel1.setBackground(java.awt.SystemColor.activeCaption);
         colorbarPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         labelCDP.setForeground(java.awt.Color.white);
@@ -414,7 +545,6 @@ public class MainWindow extends javax.swing.JFrame {
         panelCVS.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         panelCVS.setLayout(new javax.swing.BoxLayout(panelCVS, javax.swing.BoxLayout.LINE_AXIS));
 
-        colorbarPanel2.setBackground(java.awt.SystemColor.activeCaption);
         colorbarPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         jLabel2.setForeground(java.awt.Color.white);
@@ -476,7 +606,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jToolBar1.setBorder(null);
         jToolBar1.setFloatable(false);
-        jToolBar1.setOrientation(1);
+        jToolBar1.setOrientation(javax.swing.SwingConstants.VERTICAL);
         jToolBar1.setRollover(true);
 
         btnNext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/Forward24.gif"))); // NOI18N
@@ -528,6 +658,17 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jToolBar1.add(btnCDP);
 
+        btnVelModel.setText("M");
+        btnVelModel.setFocusable(false);
+        btnVelModel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        btnVelModel.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        btnVelModel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnVelModelActionPerformed(evt);
+            }
+        });
+        jToolBar1.add(btnVelModel);
+
         jMenu1.setMnemonic('F');
         jMenu1.setText("File");
 
@@ -566,6 +707,14 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
         jMenu1.add(fileSave);
+
+        fileSavePicks.setText("Save Picks");
+        fileSavePicks.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fileSavePicksActionPerformed(evt);
+            }
+        });
+        jMenu1.add(fileSavePicks);
         jMenu1.add(jSeparator4);
 
         fileExportPicks.setText("Export picks...");
@@ -607,6 +756,22 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
         jMenu2.add(menuShowIntervalVel);
+
+        menuShowLastVelocity.setText("Show last velocity");
+        menuShowLastVelocity.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuShowLastVelocityActionPerformed(evt);
+            }
+        });
+        jMenu2.add(menuShowLastVelocity);
+
+        menuShowVelocityGuide.setText("Show velocity guide");
+        menuShowVelocityGuide.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuShowVelocityGuideActionPerformed(evt);
+            }
+        });
+        jMenu2.add(menuShowVelocityGuide);
 
         jMenuBar1.add(jMenu2);
 
@@ -666,7 +831,7 @@ public class MainWindow extends javax.swing.JFrame {
         //switch (ret) {
         //    case javax.swing.JOptionPane.YES_OPTION:
         //        save();
-        close();
+//        close();
         //        break;
         //    case javax.swing.JOptionPane.NO_OPTION:
         //        close();
@@ -718,6 +883,148 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }
 
+    private void updateVelocityGuide(int cdp) {
+
+        Vector<SVPoint2D> v = m_mapPicksGuide.get(cdp);
+
+        if (v != null) {
+            if (v.size() > 0) {
+                lastVelocityCurve.setVisible(true);
+                float[] lm = gfxPanelCDP.getAxisLimits();
+
+                float ymin = lm[0];
+                float ymax = lm[1];
+
+                java.util.Vector<gfx.SVPoint2D> picksList = new java.util.Vector<gfx.SVPoint2D>();
+
+                gfx.SVPoint2D npick = null;
+                for (int i = 0; i < v.size(); i++) {
+                    npick = new gfx.SVPoint2D();
+                    npick.fx = v.get(i).fx;
+                    npick.fy = v.get(i).fy;
+                    picksList.add(npick);
+                }
+                System.out.println("CDP: " + cdp);
+                System.out.println("size: " + v.size());
+                System.out.println("size2: " + v.size());
+
+                // Sort velocity picks, increasing time
+                gfx.SVPoint2D[] pa = new gfx.SVPoint2D[picksList.size()];
+                picksList.toArray(pa);
+
+                SVPoint2DComparator ac = new SVPoint2DComparator();
+
+                java.util.Arrays.sort(pa, ac);
+
+                int np = picksList.size();
+                if (picksList.size() == 0) {
+                    velocityCurve.setVisible(false);
+                }
+
+                float[] x = new float[np + 2];
+                float[] y = new float[np + 2];
+
+                x[0] = pa[0].fx;
+                y[0] = ymin;
+
+                for (int i = 0; i < np; i++) {
+                    x[i + 1] = pa[i].fx;
+                    y[i + 1] = pa[i].fy;
+                }
+
+                x[np + 1] = x[np];
+                y[np + 1] = ymax;
+
+                velocityCurve.update(x, y);
+            } else {
+
+                velocityCurve.setVisible(false);
+            }
+        } else {
+            velocityCurve.setVisible(false);
+        }
+
+    }
+
+    private void updateLastVelocityGuide() {
+
+        int idx = (m_curCDP - m_cdpMin) / m_cdpInterval;
+        if (idx > 0) {
+            if (m_velocityPicks.get(idx - 1).size() > 0) {
+                lastVelocityCurve.setVisible(true);
+                dvwnd.lastVelocity.setVisible(true);
+                float[] lm = gfxPanelCDP.getAxisLimits();
+
+                float[] lm2 = dvwnd.gfxPanelCDP.getAxisLimits();
+
+                float ymin = lm[0];
+                float ymax = lm[1];
+                float ymin2 = lm2[0];
+                float ymax2 = lm2[1];
+                float xmin2 = lm2[2];
+                float xmax2 = lm2[3];
+
+                java.util.Vector<gfx.SVPoint2D> picksList = new java.util.Vector<gfx.SVPoint2D>();
+
+                gfx.SVPoint2D npick = null;
+                for (int i = 0; i < m_velocityPicks.get(idx - 1).size(); i++) {
+                    npick = new gfx.SVPoint2D();
+                    npick.fx = m_velocityPicks.get(idx - 1).get(i).fx;
+                    npick.fy = m_velocityPicks.get(idx - 1).get(i).fy;
+                    picksList.add(npick);
+                }
+                System.out.println("size: " + m_velocityPicks.get(idx - 1).size());
+                System.out.println("size2: " + m_velocityPicks.size());
+                System.out.println("idx: " + idx);
+
+                // Sort velocity picks, increasing time
+                gfx.SVPoint2D[] pa = new gfx.SVPoint2D[picksList.size()];
+                picksList.toArray(pa);
+
+                SVPoint2DComparator ac = new SVPoint2DComparator();
+
+                java.util.Arrays.sort(pa, ac);
+
+                int np = picksList.size();
+                if (picksList.size() == 0) {
+                    lastVelocityCurve.setVisible(false);
+                    dvwnd.lastVelocity.setVisible(false);
+                }
+
+                float[] x = new float[np + 2];
+                float[] y = new float[np + 2];
+                float[] x2 = new float[2];
+                float[] y2 = new float[2];
+
+                x[0] = pa[0].fx;
+                y[0] = ymin;
+
+                for (int i = 0; i < np; i++) {
+                    x[i + 1] = pa[i].fx;
+                    y[i + 1] = pa[i].fy;
+                }
+
+                x[np + 1] = x[np];
+                y[np + 1] = ymax;
+
+                x2[0] = (m_curCDP - m_cdpInterval);
+                x2[1] = (m_curCDP - m_cdpInterval);
+                y2[0] = ymin2;
+                y2[1] = ymax2;
+
+                lastVelocityCurve.update(x, y);
+                dvwnd.lastVelocity.update(x2, y2);
+                dvwnd.gfxPanelCDP.repaint();
+            } else {
+                lastVelocityCurve.setVisible(false);
+                dvwnd.lastVelocity.setVisible(false);
+            }
+        }
+
+
+
+    }
+
     private void updateIntervalVelocity() {
 
         int nv = m_currentCDPVelocityPicks.size();
@@ -756,7 +1063,7 @@ public class MainWindow extends javax.swing.JFrame {
             if (i == 0) {
                 ny[t] = ymin;
             } else {
-                ny[t] = y[i-1];
+                ny[t] = y[i - 1];
             }
 
             nx[t + 1] = v[i];
@@ -765,15 +1072,49 @@ public class MainWindow extends javax.swing.JFrame {
             t += 2;
         }
 
-        nx[t] = nx[t-1];
+        nx[t] = nx[t - 1];
         ny[t] = ymax;
 
         intervalCurve.update(nx, ny);
 
     }
 
+    public void updateLineGuide(float v, float t) {
+        float[] lm = gfxPanelCVS.getAxisLimits();
+        float xmin = lm[2];
+        float xmax = lm[3];
+        float ymin = lm[0];
+        float ymax = lm[1];
+        float x[] = new float[2];
+        float y[] = new float[2];
+        x[0] = xmin;
+        x[1] = xmax;
+        y[0] = t;
+        y[1] = t;
+        lineGuideCVS.update(x, y);
+        lm = gfxPanelSemblance.getAxisLimits();
+        xmin = lm[2];
+        xmax = lm[3];
+        ymin = lm[0];
+        ymax = lm[1];
+        x = new float[2];
+        y = new float[2];
+        float x2[] = new float[2];
+        float y2[] = new float[2];
+        x[0] = v;
+        x[1] = v;
+        y[0] = ymin;
+        y[1] = ymax;
+        x2[0] = xmin;
+        x2[1] = xmax;
+        y2[0] = t;
+        y2[1] = t;
+        lineGuideSemblaceY.update(x, y);
+        lineGuideSemblaceX.update(x2, y2);
+    }
+
     private void updateNMOCurve(float v, float t, float anis1, float anis2) {
-        int np = nmoCurve.getNumberOfPoint();        
+        int np = nmoCurve.getNumberOfPoint();
         float[] lm = gfxPanelCDP.getAxisLimits();
 
         float[] x = new float[np];
@@ -792,9 +1133,9 @@ public class MainWindow extends javax.swing.JFrame {
             if (m_showingNMO) {
                 y[i] = t;
             } else {
-                y[i] = (float) (Math.sqrt(Math.pow(t, 2) +
-                        (1 / Math.pow(v, 2)) * Math.pow(x[i], 2) +
-                        (anis1 / (1 + anis2 * Math.pow(x[i], 2))) * Math.pow(x[i], 4)));
+                y[i] = (float) (Math.sqrt(Math.pow(t, 2)
+                        + (1 / Math.pow(v, 2)) * Math.pow(x[i], 2)
+                        + (anis1 / (1 + anis2 * Math.pow(x[i], 2))) * Math.pow(x[i], 4)));
             }
         }
 
@@ -804,10 +1145,16 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void updateVelocityPicksCurve(float v, float t) {
         if (m_currentCDPVelocityPicks.size() > 0) {
+            dvwnd.velocity.setVisible(true);
             float[] lm = gfxPanelCDP.getAxisLimits();
+            float[] lm2 = dvwnd.gfxPanelCDP.getAxisLimits();
 
             float ymin = lm[0];
             float ymax = lm[1];
+            float ymin2 = lm2[0];
+            float ymax2 = lm2[1];
+            float xmin2 = lm2[2];
+            float xmax2 = lm2[3];
 
             java.util.Vector<gfx.SVPoint2D> picksList = new java.util.Vector<gfx.SVPoint2D>();
 
@@ -839,6 +1186,8 @@ public class MainWindow extends javax.swing.JFrame {
 
             float[] x = new float[np + 2];
             float[] y = new float[np + 2];
+            float[] x2 = new float[2];
+            float[] y2 = new float[2];
 
             x[0] = pa[0].fx;
             y[0] = ymin;
@@ -851,10 +1200,18 @@ public class MainWindow extends javax.swing.JFrame {
             x[np + 1] = x[np];
             y[np + 1] = ymax;
 
+            x2[0] = (m_curCDP);
+            x2[1] = (m_curCDP);
+            y2[0] = ymin2;
+            y2[1] = ymax2;
             picksCurve.update(x, y);
+            dvwnd.velocity.update(x2, y2);
+            dvwnd.gfxPanelCDP.repaint();
 
         } else {
             picksCurve.clear();
+            dvwnd.velocity.setVisible(false);
+            dvwnd.gfxPanelCDP.repaint();
         }
         panelSemblance.repaint();
         panelCVS.repaint();
@@ -884,11 +1241,11 @@ private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event
 }//GEN-LAST:event_formWindowOpened
 
 private void aboutMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuActionPerformed
-/*
+    /*
     (new dialogs.AboutDlg(this, true)).setVisible(true);//GEN-LAST:event_aboutMenuActionPerformed
-*/
-    (new botoseis.ivelan.dialogs.AboutDlg(this, true)).setVisible(true);
-}
+         */
+        (new botoseis.ivelan.dialogs.AboutDlg(this, true)).setVisible(true);
+    }
 
 private void fileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNewActionPerformed
     int ret = javax.swing.JOptionPane.NO_OPTION;//GEN-LAST:event_fileNewActionPerformed
@@ -947,7 +1304,7 @@ private void fileExportPicksActionPerformed(java.awt.event.ActionEvent evt) {//G
 
     if (ret == javax.swing.JFileChooser.APPROVE_OPTION) {
         java.io.File outF = new java.io.File(jfc.getSelectedFile().toString());
-        savePicksToFile(outF);
+        savePicksToFileFormated(outF);
     }
 
 }//GEN-LAST:event_fileExportPicksActionPerformed
@@ -1008,7 +1365,16 @@ private void btnPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         m_currentCDPVelocityPicks = m_velocityPicks.get(idx);
 
         updateVelocityPicksCurve(0, 0);
+        if (menuShowLastVelocity.isSelected()) {
+            updateLastVelocityGuide();
+        }
+        if (menuShowIntervalVel.isSelected()) {
+            updateIntervalVelocity();
+        }
 
+        if (menuShowVelocityGuide.isSelected()) {
+            updateVelocityGuide(m_curCDP);
+        }
         panelCDP.repaint();
         panelSemblance.repaint();
         panelCVS.repaint();
@@ -1070,7 +1436,7 @@ private void menuShowIntervalVelActionPerformed(java.awt.event.ActionEvent evt) 
 }//GEN-LAST:event_menuShowIntervalVelActionPerformed
 
 private void optionsVelanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optionsVelanActionPerformed
-    botoseis.ivelan.dialogs.VelanDlg dlg = new botoseis.ivelan.dialogs.VelanDlg(this, true,m_vmax,m_vmin,(int) ((m_vmax - m_vmin)/m_dv) );
+    botoseis.ivelan.dialogs.VelanDlg dlg = new botoseis.ivelan.dialogs.VelanDlg(this, true, m_vmax, m_vmin, (int) ((m_vmax - m_vmin) / m_dv));
 
     dlg.setVisible(true);
 
@@ -1094,6 +1460,27 @@ private void optionsVelanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-
 private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
     savePicksToFile(new java.io.File(m_picksFilePath));
 }//GEN-LAST:event_formWindowClosing
+
+private void btnVelModelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVelModelActionPerformed
+    new CreateVelocityModelAction();
+}//GEN-LAST:event_btnVelModelActionPerformed
+
+private void fileSavePicksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileSavePicksActionPerformed
+    savePicksToFile(new File(m_picksFilePath));
+}//GEN-LAST:event_fileSavePicksActionPerformed
+
+private void menuShowLastVelocityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuShowLastVelocityActionPerformed
+    lastVelocityCurve.setVisible(menuShowLastVelocity.isSelected());
+    updateLastVelocityGuide();
+    dvwnd.lastVelocity.setVisible(menuShowLastVelocity.isSelected());
+    gfxPanelSemblance.repaint();
+}//GEN-LAST:event_menuShowLastVelocityActionPerformed
+
+private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuShowVelocityGuideActionPerformed
+    velocityCurve.setVisible(menuShowVelocityGuide.isSelected());
+    updateVelocityGuide(m_curCDP);
+    gfxPanelSemblance.repaint();
+}//GEN-LAST:event_menuShowVelocityGuideActionPerformed
 
     private void clearTemps() {
         String cdpF = String.format(m_tmpDir + "/" + "cdp-%d.su", m_curCDP);
@@ -1162,24 +1549,24 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             String vnmo = "vnmo=";
 
             int i;
-            tnmo += String.format("%.4f,", 0.0);
-            vnmo += String.format("%.4f,", pa[0].fx);
+            tnmo += String.format(Locale.ENGLISH, "%.4f,", 0.0);
+            vnmo += String.format(Locale.ENGLISH, "%.4f,", pa[0].fx);
 
             for (i = 0; i < pa.length; i++) {
-                tnmo += String.format("%.4f,", pa[i].fy);
-                vnmo += String.format("%.4f,", pa[i].fx);
+                tnmo += String.format(Locale.ENGLISH, "%.4f,", pa[i].fy);
+                vnmo += String.format(Locale.ENGLISH, "%.4f,", pa[i].fx);
             }
 
             float[] lm = gfxPanelCDP.getAxisLimits();
 
             float tmax = lm[1];
 
-            tnmo += String.format("%.4f", tmax);
-            vnmo += String.format("%.4f", pa[pa.length - 1].fx);
+            tnmo += String.format(Locale.ENGLISH, "%.4f", tmax);
+            vnmo += String.format(Locale.ENGLISH, "%.4f", pa[pa.length - 1].fx);
 
             cmd.add(tnmo);
             cmd.add(vnmo);
-
+            System.out.println(cmd);
             sa = new String[cmd.size()];
             cmd.toArray(sa);
 
@@ -1213,6 +1600,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             f.delete();
 
         } catch (Exception e) {
+            e.printStackTrace();
         }
 
 
@@ -1237,7 +1625,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             String exec = "";
             for (int i = 0; i < sa.length; i++) {
-                exec += sa[i]+"  ";
+                exec += sa[i] + "  ";
             }
             Process p = Runtime.getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
             System.out.println(exec);
@@ -1247,13 +1635,16 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             usrdata.SUSection sc = new usrdata.SUSection();
             sc.readFromFile(outF);
-            
+
             int n1 = sc.getN1();
             int n2 = sc.getN2();
             float f1 = sc.getF1();
             float f2 = sc.getF2();
             float d1 = sc.getD1();
             float d2 = sc.getD2();
+
+            m_ns = n1;
+            m_dt = d1;
 
             gfxPanelCDP.setAxesLimits(f1, f1 + n1 * d1, f2, f2 + n2 * d2);
             m_timeAxis.setLimits(f1, f1 + n1 * d1);
@@ -1305,21 +1696,21 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         cmd.add("bvsuvelan.sh");
         cmd.add(cdpF);
         cmd.add(smapF);
-        cmd.add(String.format(Locale.ENGLISH,"%.2f", tpow));
+        cmd.add(String.format(Locale.ENGLISH, "%.2f", tpow));
         cmd.add(filter);
         cmd.add(amps);
-        cmd.add(String.format("%d", nv));
-        cmd.add(String.format("%.0f", dv));
-        cmd.add(String.format("%.0f", fv));
+        cmd.add(String.format(Locale.ENGLISH, "%d", nv));
+        cmd.add(String.format(Locale.ENGLISH, "%.0f", dv));
+        cmd.add(String.format(Locale.ENGLISH, "%.0f", fv));
 
 
         try {
             String[] sa = new String[cmd.size()];
             cmd.toArray(sa);
 
-             String exec = "";
+            String exec = "";
             for (int i = 0; i < sa.length; i++) {
-                exec += sa[i]+"  ";
+                exec += sa[i] + "  ";
             }
             Process p = Runtime.getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
             System.out.println(exec);
@@ -1335,14 +1726,18 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             float f1 = sc.getF1();
             float f2 = sc.getF2();
             float d1 = sc.getD1();
-            float d2 = sc.getD2();          
-            gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);         
+            float d2 = sc.getD2();
+            gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);
 
             gfx.SVColorScale csActor = new gfx.SVColorScale(3, gfx.SVColorScale.LSBFirst);
             csActor.setData(sc.getData(), n1, f1, d1, n2, fv, dv);
 
             m_velocityAxis.setLimits(f2, f2 + n2 * d2);
+            csActor.setColormap(m_currMapType, m_currMapColor);
 
+            m_gfxPanelColorbar = new GfxPanelColorbar(csActor, GfxPanelColorbar.HORIZONTAL);
+            colorbarPanel.removeAll();
+            colorbarPanel.add(m_gfxPanelColorbar);
             m_gfxPanelColorbar = new GfxPanelColorbar(csActor, GfxPanelColorbar.HORIZONTAL);
             colorbarPanel.removeAll();
             colorbarPanel.add(m_gfxPanelColorbar);
@@ -1391,9 +1786,9 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             String[] sa = new String[cmd.size()];
             cmd.toArray(sa);
 
-             String exec = "";
+            String exec = "";
             for (int i = 0; i < sa.length; i++) {
-                exec += sa[i]+"  ";
+                exec += sa[i] + "  ";
             }
 
 
@@ -1442,7 +1837,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     }
 
     private void showProcessLog(Process p) throws IOException {
-        int a =0;
+        int a = 0;
 //        while( (a = p.getErrorStream().read()) >= 0){
 ////            System.out.print((char)a);
 //        }
@@ -1476,6 +1871,8 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
                 m_tmax = Float.parseFloat(key[1]);
             } else if ("velpicks".equalsIgnoreCase(key[0])) {
                 m_picksFilePath = key[1];
+            } else if ("velguide".equalsIgnoreCase(key[0])) {
+                m_picksGuide = key[1];
             } else if ("vmin".equalsIgnoreCase(key[0])) {
                 m_vmin = Float.parseFloat(key[1]);
             } else if ("vmax".equalsIgnoreCase(key[0])) {
@@ -1499,6 +1896,10 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         if (m_ready) {
             setupProject();
             workOnCDP(m_cdpMin);
+            loadPicksFromFile(new File(m_picksFilePath));
+            if (m_picksGuide != null) {
+                loadPicksGuide(new File(m_picksGuide));
+            }
         }
     }
 
@@ -1751,42 +2152,96 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         }
     }
 
+    private void loadPicksGuide(java.io.File inF) {
+        try {
+            System.out.println("Loading velPicks....");
+            java.util.Scanner sc2;
+            int count = 0;
+            BufferedReader buff = new BufferedReader(new FileReader(inF));
+            String line = "";
+            if (buff.ready()) {
+                line = buff.readLine();
+            }
+            if (line.replace("cdp=", "").trim().equals("")) {
+                count = 0;
+            } else {
+                count = new StringTokenizer(line, ",").countTokens();
+            }
+            System.out.println(count);
+
+            gfx.SVPoint2D p;
+            for (int i = 0; i < count; i++) {
+                sc2 = new java.util.Scanner(buff.readLine().replace("tnmo=", "")).useDelimiter(",");
+                Vector<gfx.SVPoint2D> picks = new Vector<SVPoint2D>();
+                while (sc2.hasNext()) {
+                    p = new gfx.SVPoint2D();
+                    p.fy = new Float(sc2.next());
+                    picks.add(p);
+                }
+                sc2 = new java.util.Scanner(buff.readLine().replace("vnmo=", "")).useDelimiter(",");
+                for (int k = 0; k < picks.size(); k++) {
+                    picks.get(k).fx = new Float(sc2.next());
+                }
+                int cdp = (i * m_cdpInterval) + m_cdpMin;
+                m_mapPicksGuide.put(cdp, picks);
+            }
+            System.out.println(count + " cdps loaded.");
+
+        } catch (FileNotFoundException ex) {
+            javax.swing.JOptionPane.showMessageDialog(this, ex);
+            ex.printStackTrace();
+        } catch (IOException ioe) {
+        }
+    }
+
     private void loadPicksFromFile(java.io.File inF) {
         try {
-            java.util.Scanner sc = new java.util.Scanner(inF);
+            System.out.println("Loading velPicks....");
             java.util.Scanner sc2;
-
-            sc2 = new java.util.Scanner(sc.nextLine()).useDelimiter(",");
             int count = 0;
-            while (sc2.hasNext()) {
-                m_velocityPicks.add(new Vector<gfx.SVPoint2D>());
-                count++;
+            BufferedReader buff = new BufferedReader(new FileReader(inF));
+            String line = "";
+            if (buff.ready()) {
+                line = buff.readLine();
             }
-
+            if (line.replace("cdp=", "").trim().equals("")) {
+                count = 0;
+            } else {
+                count = new StringTokenizer(line, ",").countTokens();
+            }
+            System.out.println(count);
             Vector<gfx.SVPoint2D> picks;
             gfx.SVPoint2D p;
             for (int i = 0; i < count; i++) {
-                sc2 = new java.util.Scanner(sc.nextLine()).useDelimiter(",");
+                sc2 = new java.util.Scanner(buff.readLine().replace("tnmo=", "")).useDelimiter(",");
                 picks = m_velocityPicks.get(i);
                 while (sc2.hasNext()) {
                     p = new gfx.SVPoint2D();
-                    p.fy = sc2.nextFloat();
+                    p.fy = new Float(sc2.next());
                     picks.add(p);
                 }
-                sc2 = new java.util.Scanner(sc.nextLine()).useDelimiter(",");
-                for (int k = 0; i < picks.size(); k++) {
-                    picks.get(k).fx = sc2.nextFloat();
+                sc2 = new java.util.Scanner(buff.readLine().replace("vnmo=", "")).useDelimiter(",");
+                for (int k = 0; k < picks.size(); k++) {
+                    picks.get(k).fx = new Float(sc2.next());
                 }
+            }
+            System.out.println(count + " cdps loaded.");
+            if (count >= 1) {
+                m_currentCDPVelocityPicks = m_velocityPicks.get(0);
+                updateVelocityPicksCurve(0, 0);
             }
         } catch (FileNotFoundException ex) {
             javax.swing.JOptionPane.showMessageDialog(this, ex);
             ex.printStackTrace();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
     }
 
-    private void savePicksToFile(java.io.File outF) {
+    private void savePicksToFileFormated(java.io.File outF) {
         try {
             java.io.PrintWriter pw = new java.io.PrintWriter(outF);
+
 
             int size = m_velocityPicks.size();
             String line = "cdp=";
@@ -1806,16 +2261,77 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             String vnmo = "vnmo=";
             for (int i = 0; i < size; i++) {
                 picks = m_velocityPicks.get(i);
+                int cdp = m_cdpMin + i * m_cdpInterval;
+                Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
+
+                    @Override
+                    public int compare(SVPoint2D arg0, SVPoint2D arg1) {
+                        Float o1 = new Float(arg0.fy);
+                        Float o2 = new Float(arg1.fy);
+                        return o1.compareTo(o2);
+                    }
+                });
+                int n = picks.size();
+                if (n > 0) {
+                    for (int j = 0; j < n; j++) {
+                        tnmo = String.format(Locale.ENGLISH, "%.2f", picks.get(j).fy);
+                        vnmo = String.format(Locale.ENGLISH, "%.2f", picks.get(j).fx);
+                        pw.println(String.format("%d\t%s\t%s", cdp, tnmo, vnmo));
+                    }
+
+//                    pw.println(tnmo);
+//                    pw.println(vnmo);
+                }
+            }
+            pw.close();
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, e);
+            e.printStackTrace();
+        }
+    }
+
+    private void savePicksToFile(java.io.File outF) {
+        try {
+            java.io.PrintWriter pw = new java.io.PrintWriter(outF);
+
+
+            int size = m_velocityPicks.size();
+            String line = "cdp=";
+            for (int i = 0; i < size; i++) {
+                if (m_velocityPicks.get(i).size() > 0) {
+                    line += String.format("%d", m_cdpMin + i * m_cdpInterval);
+                    if (i < size - 1) {
+                        line += ",";
+                    }
+                }
+            }
+
+            pw.println(line);
+
+            Vector<gfx.SVPoint2D> picks;
+            String tnmo = "tnmo=";
+            String vnmo = "vnmo=";
+            for (int i = 0; i < size; i++) {
+                picks = m_velocityPicks.get(i);
+                Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
+
+                    @Override
+                    public int compare(SVPoint2D arg0, SVPoint2D arg1) {
+                        Float o1 = new Float(arg0.fy);
+                        Float o2 = new Float(arg1.fy);
+                        return o1.compareTo(o2);
+                    }
+                });
                 int n = picks.size();
                 if (n > 0) {
                     tnmo = "tnmo=";
                     vnmo = "vnmo=";
                     for (int j = 0; j < n; j++) {
-                        tnmo += String.format(Locale.ENGLISH,"%.2f", picks.get(j).fy);
+                        tnmo += String.format(Locale.ENGLISH, "%.2f", picks.get(j).fy);
                         if (j < n - 1) {
                             tnmo += ",";
                         }
-                        vnmo += String.format(Locale.ENGLISH,"%.2f", picks.get(j).fx);
+                        vnmo += String.format(Locale.ENGLISH, "%.2f", picks.get(j).fx);
                         if (j < n - 1) {
                             vnmo += ",";
                         }
@@ -1832,13 +2348,182 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         }
     }
 
+    float interpLinear(float u, float[] x, float[] y) {
+        int len = x.length;
+        float ret = 0.0f;
+
+        // simple linear seach
+        for (int i = 0; i < len - 1; i++) {
+            if ((u >= x[i]) && (u <= x[i + 1])) {
+                ret = y[i] + (u - x[i]) * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
+                break;
+            }
+        }
+
+        if (u < x[0]) {
+            return y[0];
+        }
+        if (u > x[len - 1]) {
+            return y[len - 1];
+        }
+
+        return ret;
+    }
+
+    public void updateVelocityModel() {
+        Vector<gfx.SVPoint2D> picks;
+
+        // Interpolate along traces samples
+        // Time sampling parameters
+        int ns = m_ns;
+        float dt = m_dt;
+
+        int ncdps = m_velocityPicks.size();
+
+        //float[] trData = new float[ns];
+        if (ncdps > 0) {
+            float[][] data = new float[ncdps][ns];
+
+            for (int i = 0; i < ncdps; i++) {
+                picks = m_velocityPicks.get(i);
+                Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
+
+                    @Override
+                    public int compare(SVPoint2D arg0, SVPoint2D arg1) {
+                        Float o1 = new Float(arg0.fy);
+                        Float o2 = new Float(arg1.fy);
+                        return o1.compareTo(o2);
+                    }
+                });
+                if (picks.size() > 0) {
+                    int nv = picks.size();
+                    nv += 2;
+                    float[] ta = new float[nv];
+                    float[] va = new float[nv];
+
+                    ta[0] = 0.0f;
+                    va[0] = picks.get(0).fx;
+                    ta[nv - 1] = ns * dt;
+                    va[nv - 1] = picks.get(picks.size() - 1).fx;
+
+                    int k = 1;
+                    for (int iv = 0; iv < picks.size(); iv++) {
+                        ta[k] = picks.get(iv).fy;
+                        va[k] = picks.get(iv).fx;
+                        k++;
+                    }
+
+                    // Create interpolated data
+                    for (int it = 0; it < ns; it++) {
+                        data[i][it] = interpLinear(it * dt, ta, va);
+                    }
+                }
+            }
+            float f1 = 0.0f;
+            float d1 = dt;
+            int n1 = ns;
+            float f2 = m_cdpMin;
+            float d2 = m_cdpInterval;
+            int n2 = ncdps;
+
+            dvwnd.setFirstPlot(data, f1, d1, n1, f2, d2, n2);
+            dvwnd.gfxPanelCDP.repaint();
+        }
+    }
+
+    /* Tools->Create velocity model */
+    class CreateVelocityModelAction extends AbstractAction {
+
+        public CreateVelocityModelAction() {
+            super("Create velocity model");
+            //putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_V));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+
+                //Vector<VelocityInfo> vlist;
+                Vector<gfx.SVPoint2D> picks;
+
+                // Interpolate along traces samples
+                // Time sampling parameters
+                int ns = m_ns;
+                float dt = m_dt;
+
+                int ncdps = m_velocityPicks.size();
+
+                //float[] trData = new float[ns];
+                if (ncdps > 0) {
+                    float[][] data = new float[ncdps][ns];
+
+                    for (int i = 0; i < ncdps; i++) {
+                        picks = m_velocityPicks.get(i);
+                        Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
+
+                            @Override
+                            public int compare(SVPoint2D arg0, SVPoint2D arg1) {
+                                Float o1 = new Float(arg0.fy);
+                                Float o2 = new Float(arg1.fy);
+                                return o1.compareTo(o2);
+                            }
+                        });
+                        if (picks.size() > 0) {
+                            int nv = picks.size();
+                            nv += 2;
+                            float[] ta = new float[nv];
+                            float[] va = new float[nv];
+
+                            ta[0] = 0.0f;
+                            va[0] = picks.get(0).fx;
+                            ta[nv - 1] = ns * dt;
+                            va[nv - 1] = picks.get(picks.size() - 1).fx;
+
+                            int k = 1;
+                            for (int iv = 0; iv < picks.size(); iv++) {
+                                ta[k] = picks.get(iv).fy;
+                                va[k] = picks.get(iv).fx;
+                                System.out.println(ta[k] + " ########## " + va[k]);
+                                k++;
+                            }
+
+                            // Create interpolated data
+                            for (int it = 0; it < ns; it++) {
+                                data[i][it] = interpLinear(it * dt, ta, va);
+                            }
+                        }
+                    }
+
+
+
+
+                    float f1 = 0.0f;
+                    float d1 = dt;
+                    int n1 = ns;
+                    float f2 = m_cdpMin;
+                    float d2 = m_cdpInterval;
+                    int n2 = ncdps;
+
+                    dvwnd.setFirstPlot(data, f1, d1, n1, f2, d2, n2);
+//                        dvwnd.setLimits(f2, f2 + (n2 - 1) * d2, f1, f1 + n1 * d1);
+
+                    dvwnd.setVisible(true);
+                }
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(null, ex.toString());
+                ex.printStackTrace();
+            }
+
+        }
+    }
+
     /**
      * @param args the command line arguments
      */
     public static void main(final String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
-            public void run() {               
+            public void run() {
                 MainWindow wnd = new MainWindow();
                 wnd.setCommandLine(args);
                 wnd.setVisible(true);
@@ -1851,6 +2536,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     private javax.swing.JButton btnNMO;
     private javax.swing.JButton btnNext;
     private javax.swing.JButton btnPrev;
+    private javax.swing.JButton btnVelModel;
     private javax.swing.JPanel colorbarPanel;
     private javax.swing.JPanel colorbarPanel1;
     private javax.swing.JPanel colorbarPanel2;
@@ -1860,6 +2546,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     private javax.swing.JMenuItem fileNew;
     private javax.swing.JMenuItem fileOpen;
     private javax.swing.JMenuItem fileSave;
+    private javax.swing.JMenuItem fileSavePicks;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
@@ -1879,6 +2566,8 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JLabel labelCDP;
     private javax.swing.JCheckBoxMenuItem menuShowIntervalVel;
+    private javax.swing.JCheckBoxMenuItem menuShowLastVelocity;
+    private javax.swing.JCheckBoxMenuItem menuShowVelocityGuide;
     private javax.swing.JMenuItem optionsVelan;
     private javax.swing.JPanel panelA;
     private javax.swing.JPanel panelB;
@@ -1896,10 +2585,16 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     gfx.SVXYPlot nmoCurve = new gfx.SVXYPlot();
     gfx.SVXYPlot picksCurve = new gfx.SVXYPlot();
     gfx.SVXYPlot intervalCurve = new gfx.SVXYPlot();
+    gfx.SVXYPlot lastVelocityCurve = new gfx.SVXYPlot();
+    gfx.SVXYPlot velocityCurve = new gfx.SVXYPlot();
+    gfx.SVXYPlot lineGuideSemblaceY = new gfx.SVXYPlot();
+    gfx.SVXYPlot lineGuideSemblaceX = new gfx.SVXYPlot();
+    gfx.SVXYPlot lineGuideCVS = new gfx.SVXYPlot();
     Vector<Vector<gfx.SVPoint2D>> m_velocityPicks = new Vector<Vector<gfx.SVPoint2D>>();
     Vector<gfx.SVPoint2D> m_currentCDPVelocityPicks = null;
     GfxPanelColorbar m_gfxPanelColorbar = null;
     String m_inputFilePath = "";
+    SortedMap<Integer, Vector<gfx.SVPoint2D>> m_mapPicksGuide = new TreeMap();
     // CDP parameters
     int m_cdpMin = 0;
     private int m_cdpMax = 0;
@@ -1931,4 +2626,10 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     boolean m_isModified = false;
     boolean m_ready = false;
     botoseis.ivelan.dialogs.PanelNewProject m_panelNewProject = new botoseis.ivelan.dialogs.PanelNewProject();
+    int m_ns;
+    float m_dt;
+    String m_picksGuide;
+    int m_currMapType;
+    int m_currMapColor;
+    DataView dvwnd = new DataView();
 }
