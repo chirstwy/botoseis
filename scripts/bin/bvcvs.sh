@@ -30,7 +30,7 @@ X=$[$XX - 1]       # Number of CMPs for windowing
 k1=$[$picknow - ($X*$dcdp) / 2]
 k2=$[$picknow + ($X*$dcdp) / 2]
 
-suwind < $indata key=cdp min=$k1 max=$k2 | susort cdp offset > tmp0
+suwind < $indata key=cdp min=$k1 max=$k2 > tmp99 &&  susort < tmp99 cdp offset > tmp0
 
 nt=`sugethw ns < tmp0 | sed 1q | sed 's/.*ns=//'`
 dt=`sugethw dt < tmp0 | sed 1q | sed 's/.*dt=//'`

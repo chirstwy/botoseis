@@ -333,7 +333,7 @@ public class MainWindow extends javax.swing.JFrame {
         panelA.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         panelA.setLayout(new javax.swing.BoxLayout(panelA, javax.swing.BoxLayout.LINE_AXIS));
 
-        colorbarPanel1.setBackground(java.awt.SystemColor.activeCaption);
+        colorbarPanel1.setBackground(new java.awt.Color(1, 1, 127));
         colorbarPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         labelCDP.setForeground(java.awt.Color.white);
@@ -476,7 +476,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jToolBar1.setBorder(null);
         jToolBar1.setFloatable(false);
-        jToolBar1.setOrientation(1);
+        jToolBar1.setOrientation(javax.swing.SwingConstants.VERTICAL);
         jToolBar1.setRollover(true);
 
         btnNext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/Forward24.gif"))); // NOI18N
@@ -1002,7 +1002,6 @@ private void btnPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         showCVS(cdp);
 
         labelCDP.setText(String.format("CDP # %d", m_curCDP));
-
         int idx = (cdp - m_cdpMin) / m_cdpInterval;
 
         m_currentCDPVelocityPicks = m_velocityPicks.get(idx);

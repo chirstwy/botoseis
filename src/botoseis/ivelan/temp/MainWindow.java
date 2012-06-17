@@ -14,6 +14,7 @@ import gfx.AxisPanel;
 import gfx.GfxPanelColorbar;
 import gfx.SVColorScale;
 import gfx.SVPoint2D;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -40,6 +41,7 @@ public class MainWindow extends javax.swing.JFrame {
     public MainWindow() {
         initComponents();
 
+        dvwnd = new DataView(this);
         Runtime run = Runtime.getRuntime();
         run.addShutdownHook(new Thread() {
 
@@ -547,7 +549,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         colorbarPanel2.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        jLabel2.setForeground(java.awt.Color.white);
+        jLabel2.setForeground(java.awt.Color.black);
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("CVS");
 
@@ -948,9 +950,9 @@ public class MainWindow extends javax.swing.JFrame {
 
     private void updateLastVelocityGuide() {
 
-        int idx = (m_curCDP - m_cdpMin) / m_cdpInterval;
-        if (idx > 0) {
-            if (m_velocityPicks.get(idx - 1).size() > 0) {
+        int idx = (m_curCDP - m_cdpMin);
+        if (idx >= m_cdpMin) {
+            if (m_velocityPicks.get(idx).size() > 0) {
                 lastVelocityCurve.setVisible(true);
                 dvwnd.lastVelocity.setVisible(true);
                 float[] lm = gfxPanelCDP.getAxisLimits();
@@ -967,13 +969,13 @@ public class MainWindow extends javax.swing.JFrame {
                 java.util.Vector<gfx.SVPoint2D> picksList = new java.util.Vector<gfx.SVPoint2D>();
 
                 gfx.SVPoint2D npick = null;
-                for (int i = 0; i < m_velocityPicks.get(idx - 1).size(); i++) {
+                for (int i = 0; i < m_velocityPicks.get(idx).size(); i++) {
                     npick = new gfx.SVPoint2D();
-                    npick.fx = m_velocityPicks.get(idx - 1).get(i).fx;
-                    npick.fy = m_velocityPicks.get(idx - 1).get(i).fy;
+                    npick.fx = m_velocityPicks.get(idx).get(i).fx;
+                    npick.fy = m_velocityPicks.get(idx).get(i).fy;
                     picksList.add(npick);
                 }
-                System.out.println("size: " + m_velocityPicks.get(idx - 1).size());
+                System.out.println("size: " + m_velocityPicks.get(idx).size());
                 System.out.println("size2: " + m_velocityPicks.size());
                 System.out.println("idx: " + idx);
 
@@ -1360,9 +1362,9 @@ private void btnPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
         labelCDP.setText(String.format("CDP # %d", m_curCDP));
 
-        int idx = (cdp - m_cdpMin) / m_cdpInterval;
 
-        m_currentCDPVelocityPicks = m_velocityPicks.get(idx);
+
+        m_currentCDPVelocityPicks = m_velocityPicks.get(m_curCDP);
 
         updateVelocityPicksCurve(0, 0);
         if (menuShowLastVelocity.isSelected()) {
@@ -1608,6 +1610,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
 
     private void showCDP(int cdp) {
         labelCDP.setText(String.format("CDP # %d", m_curCDP));
+        labelCDP.setForeground(Color.BLACK);
         java.util.Vector<String> cmd = new java.util.Vector<String>();
 
         String outF = String.format(m_tmpDir + "/" + "cdp-%d.su", cdp);
@@ -1843,6 +1846,28 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
 //        }
     }
 
+    float interpLinear(float u, float[] x, float[] y) {
+        int len = x.length;
+        float ret = 0.0f;
+
+        // simple linear seach
+        for (int i = 0; i < len - 1; i++) {
+            if ((u >= x[i]) && (u <= x[i + 1])) {
+                ret = y[i] + (u - x[i]) * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
+                break;
+            }
+        }
+
+        if (u < x[0]) {
+            return y[0];
+        }
+        if (u > x[len - 1]) {
+            return y[len - 1];
+        }
+
+        return ret;
+    }
+
     private class SVPoint2DComparator implements java.util.Comparator<gfx.SVPoint2D> {
 
         public int compare(SVPoint2D o1, SVPoint2D o2) {
@@ -1945,11 +1970,11 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
 
         Vector<gfx.SVPoint2D> cdpVelocityPicks;
         for (int cdp = m_cdpMin; cdp <= m_cdpMax; cdp += m_cdpInterval) {
-            m_velocityPicks.add(new Vector<gfx.SVPoint2D>());
+            m_velocityPicks.put(cdp, new Vector<gfx.SVPoint2D>());
         }
 
         m_curCDP = m_cdpMin;
-        m_currentCDPVelocityPicks = m_velocityPicks.get(0);
+        m_currentCDPVelocityPicks = m_velocityPicks.get(m_velocityPicks.firstKey());
         btnNext.setEnabled(true);
         btnPrev.setEnabled(false);
 
@@ -2212,9 +2237,10 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             System.out.println(count);
             Vector<gfx.SVPoint2D> picks;
             gfx.SVPoint2D p;
+            String[] cdps = line.replace("cdp=", "").trim().split(",");
             for (int i = 0; i < count; i++) {
                 sc2 = new java.util.Scanner(buff.readLine().replace("tnmo=", "")).useDelimiter(",");
-                picks = m_velocityPicks.get(i);
+                picks = m_velocityPicks.get(new Integer(cdps[i]));
                 while (sc2.hasNext()) {
                     p = new gfx.SVPoint2D();
                     p.fy = new Float(sc2.next());
@@ -2227,7 +2253,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             }
             System.out.println(count + " cdps loaded.");
             if (count >= 1) {
-                m_currentCDPVelocityPicks = m_velocityPicks.get(0);
+                m_currentCDPVelocityPicks = m_velocityPicks.get(m_velocityPicks.firstKey());
                 updateVelocityPicksCurve(0, 0);
             }
         } catch (FileNotFoundException ex) {
@@ -2245,13 +2271,15 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
 
             int size = m_velocityPicks.size();
             String line = "cdp=";
-            for (int i = 0; i < size; i++) {
-                if (m_velocityPicks.get(i).size() > 0) {
-                    line += String.format("%d", m_cdpMin + i * m_cdpInterval);
+            int i = 0;
+            for (Integer key : m_velocityPicks.keySet()) {
+                if (m_velocityPicks.get(key).size() > 0) {
+                    line += String.format("%d", key);
                     if (i < size - 1) {
                         line += ",";
                     }
                 }
+                i++;
             }
 
             pw.println(line);
@@ -2259,9 +2287,9 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             Vector<gfx.SVPoint2D> picks;
             String tnmo = "tnmo=";
             String vnmo = "vnmo=";
-            for (int i = 0; i < size; i++) {
-                picks = m_velocityPicks.get(i);
-                int cdp = m_cdpMin + i * m_cdpInterval;
+            for (Integer key : m_velocityPicks.keySet()) {
+                picks = m_velocityPicks.get(key);
+                int cdp = key;
                 Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
 
                     @Override
@@ -2297,13 +2325,16 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
 
             int size = m_velocityPicks.size();
             String line = "cdp=";
-            for (int i = 0; i < size; i++) {
-                if (m_velocityPicks.get(i).size() > 0) {
-                    line += String.format("%d", m_cdpMin + i * m_cdpInterval);
+            int i = 0;
+            for (Integer key : m_velocityPicks.keySet()) {
+                if (m_velocityPicks.get(key).size() > 0) {
+                    line += String.format("%d", key);
                     if (i < size - 1) {
                         line += ",";
                     }
+
                 }
+                i++;
             }
 
             pw.println(line);
@@ -2311,8 +2342,8 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             Vector<gfx.SVPoint2D> picks;
             String tnmo = "tnmo=";
             String vnmo = "vnmo=";
-            for (int i = 0; i < size; i++) {
-                picks = m_velocityPicks.get(i);
+            for (Integer key : m_velocityPicks.keySet()) {
+                picks = m_velocityPicks.get(key);
                 Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
 
                     @Override
@@ -2348,28 +2379,6 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
         }
     }
 
-    float interpLinear(float u, float[] x, float[] y) {
-        int len = x.length;
-        float ret = 0.0f;
-
-        // simple linear seach
-        for (int i = 0; i < len - 1; i++) {
-            if ((u >= x[i]) && (u <= x[i + 1])) {
-                ret = y[i] + (u - x[i]) * (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
-                break;
-            }
-        }
-
-        if (u < x[0]) {
-            return y[0];
-        }
-        if (u > x[len - 1]) {
-            return y[len - 1];
-        }
-
-        return ret;
-    }
-
     public void updateVelocityModel() {
         Vector<gfx.SVPoint2D> picks;
 
@@ -2383,9 +2392,9 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
         //float[] trData = new float[ns];
         if (ncdps > 0) {
             float[][] data = new float[ncdps][ns];
-
-            for (int i = 0; i < ncdps; i++) {
-                picks = m_velocityPicks.get(i);
+            int i = 0;
+            for (Integer key : m_velocityPicks.keySet()) {
+                picks = m_velocityPicks.get(key);
                 Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
 
                     @Override
@@ -2414,9 +2423,12 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
                     }
 
                     // Create interpolated data
+
                     for (int it = 0; it < ns; it++) {
                         data[i][it] = interpLinear(it * dt, ta, va);
+
                     }
+                    i++;
                 }
             }
             float f1 = 0.0f;
@@ -2456,9 +2468,9 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
                 //float[] trData = new float[ns];
                 if (ncdps > 0) {
                     float[][] data = new float[ncdps][ns];
-
-                    for (int i = 0; i < ncdps; i++) {
-                        picks = m_velocityPicks.get(i);
+                    int i = 0;
+                    for (Integer key : m_velocityPicks.keySet()) {
+                        picks = m_velocityPicks.get(key);
                         Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
 
                             @Override
@@ -2488,9 +2500,12 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
                             }
 
                             // Create interpolated data
+
                             for (int it = 0; it < ns; it++) {
                                 data[i][it] = interpLinear(it * dt, ta, va);
+
                             }
+                            i++;
                         }
                     }
 
@@ -2590,7 +2605,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
     gfx.SVXYPlot lineGuideSemblaceY = new gfx.SVXYPlot();
     gfx.SVXYPlot lineGuideSemblaceX = new gfx.SVXYPlot();
     gfx.SVXYPlot lineGuideCVS = new gfx.SVXYPlot();
-    Vector<Vector<gfx.SVPoint2D>> m_velocityPicks = new Vector<Vector<gfx.SVPoint2D>>();
+    SortedMap<Integer, Vector<gfx.SVPoint2D>> m_velocityPicks = new TreeMap();
     Vector<gfx.SVPoint2D> m_currentCDPVelocityPicks = null;
     GfxPanelColorbar m_gfxPanelColorbar = null;
     String m_inputFilePath = "";
@@ -2598,7 +2613,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
     // CDP parameters
     int m_cdpMin = 0;
     private int m_cdpMax = 0;
-    private int m_cdpInterval = 0;
+    public int m_cdpInterval = 0;
     private float m_tmin = 0.0f;
     private float m_tmax = 0.0f;
     private String m_picksFilePath = "";
@@ -2631,5 +2646,5 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
     String m_picksGuide;
     int m_currMapType;
     int m_currMapColor;
-    DataView dvwnd = new DataView();
+    DataView dvwnd;
 }
