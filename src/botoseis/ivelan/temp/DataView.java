@@ -549,7 +549,7 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                 }
                 tr.getHeader().cdp = (int) icdp + i;
                 tr.setData(data3);
-                tr.writeToFile(fs);
+                tr.writeToFile(fs,true);
             }
 
             fs.close();
@@ -582,7 +582,7 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                 }
                 tr.getHeader().cdp = (int) icdp + i;
                 tr.setData(data3);
-                tr.writeToFile(fs);
+                tr.writeToFile(fs,true);
             }
 
 
