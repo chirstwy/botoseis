@@ -7,6 +7,7 @@ package botoseis.mainGui.admin;
  */
 import botoseis.mainGui.admin.EditProcessDlg;
 import botoseis.mainGui.prmview.ProcessParameter;
+import botoseis.mainGui.temp.MainWindow;
 import botoseis.mainGui.workflows.ParametersGroup;
 import botoseis.mainGui.workflows.ProcessModel;
 import java.util.Enumeration;
@@ -24,7 +25,6 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import botoseis.mainGui.main.MainWindow;
 import botoseis.mainGui.utils.DefaultNode;
 
 public class ManageProcessesDlg extends javax.swing.JDialog {

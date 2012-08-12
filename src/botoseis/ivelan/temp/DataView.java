@@ -748,8 +748,8 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         float[] data = new float[n1 * n2];
         for (int i = 0; i < n2; i++) {
             for (int j = 0; j < n1; j++) {
-                data[i * n1 + j] = pData[i][j];
-            }
+                data[(i * n1) + j] = pData[i][j];       
+            }            
         }
         m_data = pData;
 
@@ -770,12 +770,11 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         float xmax = f2 + (n2 - 1) * d2;
         float ymin = f1;
         float ymax = f1 + n1 * d1;
-        System.out.println(xmin + " " + xmax + " " + ymin + " " + ymax);
 
 //        System.out.println("f1 "+f1+" d1"+d1+" n1 "+n1+" f2 "+f2+" d2 "+d2+" n2 "+n2 );
-
-        getGfxPanelCDP().setAxesLimits(f1, f1 + n1 * d1, f2, f2 + (n2 - 1) * d2);
-        m_timeAxis.setLimits(f1, f1 + n1 * d1);
+        System.out.println("N1: "+n1+" N2: "+n2+" F1: "+f1+" F2 "+f2+" D1: "+d1+" D2: "+d2);
+        getGfxPanelCDP().setAxesLimits(f1, (f1 + n1) * d1, f2, f2 + n2  * d2);
+        m_timeAxis.setLimits(f1, (f1 + n1) * d1);
 //        m_cdpOffsetAxis.setLimits(f2, f2 + n2 * d2);
 
 
@@ -787,11 +786,12 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         m_csActor = new gfx.SVColorScale(3, gfx.SVColorScale.NORMAL);
         m_csActor.setData(data, n1, f1, d1, n2, f2, d2);
         m_csActor.setImagePerc(imageperc);
-        m_csActor.setbalance(imagebalance);
+//        m_csActor.setbalance(imagebalance);
         m_csActor.setColormap(m_currMapType, m_currMapColor);
 
         getGfxPanelCDP().addActor(m_csActor);
         m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, GfxPanelColorbar.HORIZONTAL);
+        
         colorbarPanel.removeAll();
         colorbarPanel.add(m_gfxPanelColorbar);
 

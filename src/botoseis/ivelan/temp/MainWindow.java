@@ -31,6 +31,7 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.Vector;
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 
 /**
  *
@@ -52,7 +53,7 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
-        btnVelModel.setAction(new CreateVelocityModelAction());
+        btnVelModel.setAction(new CreateVelocityModelAction(new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/section.gif"))));
 
 
 
@@ -446,11 +447,11 @@ public class MainWindow extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("BotoSeis - iVelan");
         addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
-            }
             public void windowOpened(java.awt.event.WindowEvent evt) {
                 formWindowOpened(evt);
+            }
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
             }
         });
 
@@ -588,7 +589,7 @@ public class MainWindow extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 822, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -599,7 +600,7 @@ public class MainWindow extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 834, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -660,7 +661,7 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jToolBar1.add(btnCDP);
 
-        btnVelModel.setText("M");
+        btnVelModel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/section.gif"))); // NOI18N
         btnVelModel.setFocusable(false);
         btnVelModel.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnVelModel.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -799,12 +800,12 @@ public class MainWindow extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 778, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jSplitPane1)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -812,7 +813,7 @@ public class MainWindow extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 209, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 395, Short.MAX_VALUE))
+                    .addComponent(jSplitPane1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1464,7 +1465,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 }//GEN-LAST:event_formWindowClosing
 
 private void btnVelModelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVelModelActionPerformed
-    new CreateVelocityModelAction();
+    new CreateVelocityModelAction(new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/section.gif")));
 }//GEN-LAST:event_btnVelModelActionPerformed
 
 private void fileSavePicksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileSavePicksActionPerformed
@@ -1811,6 +1812,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             float f2 = sc.getF2();
             float d1 = sc.getD1();
             float d2 = sc.getD2();
+            System.out.println("N1: "+n1+" N2: "+n2+" F1: "+f1+" F2 "+f2+" D1: "+d1+" D2: "+d2);
 
             float a = ((m_cvsvmax - m_cvsvmin) / m_cvsNumPanels);
             d2 = ((m_cvsvmax + a / 2) - (m_cvsvmin - a / 2)) / n2;
@@ -2241,14 +2243,16 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             for (int i = 0; i < count; i++) {
                 sc2 = new java.util.Scanner(buff.readLine().replace("tnmo=", "")).useDelimiter(",");
                 picks = m_velocityPicks.get(new Integer(cdps[i]));
-                while (sc2.hasNext()) {
-                    p = new gfx.SVPoint2D();
-                    p.fy = new Float(sc2.next());
-                    picks.add(p);
-                }
-                sc2 = new java.util.Scanner(buff.readLine().replace("vnmo=", "")).useDelimiter(",");
-                for (int k = 0; k < picks.size(); k++) {
-                    picks.get(k).fx = new Float(sc2.next());
+                if (picks != null) {
+                    while (sc2.hasNext()) {
+                        p = new gfx.SVPoint2D();
+                        p.fy = new Float(sc2.next());
+                        picks.add(p);
+                    }
+                    sc2 = new java.util.Scanner(buff.readLine().replace("vnmo=", "")).useDelimiter(",");
+                    for (int k = 0; k < picks.size(); k++) {
+                        picks.get(k).fx = new Float(sc2.next());
+                    }
                 }
             }
             System.out.println(count + " cdps loaded.");
@@ -2344,32 +2348,35 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             String vnmo = "vnmo=";
             for (Integer key : m_velocityPicks.keySet()) {
                 picks = m_velocityPicks.get(key);
-                Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
+                if (picks != null) {
 
-                    @Override
-                    public int compare(SVPoint2D arg0, SVPoint2D arg1) {
-                        Float o1 = new Float(arg0.fy);
-                        Float o2 = new Float(arg1.fy);
-                        return o1.compareTo(o2);
-                    }
-                });
-                int n = picks.size();
-                if (n > 0) {
-                    tnmo = "tnmo=";
-                    vnmo = "vnmo=";
-                    for (int j = 0; j < n; j++) {
-                        tnmo += String.format(Locale.ENGLISH, "%.2f", picks.get(j).fy);
-                        if (j < n - 1) {
-                            tnmo += ",";
-                        }
-                        vnmo += String.format(Locale.ENGLISH, "%.2f", picks.get(j).fx);
-                        if (j < n - 1) {
-                            vnmo += ",";
-                        }
-                    }
+                    Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
 
-                    pw.println(tnmo);
-                    pw.println(vnmo);
+                        @Override
+                        public int compare(SVPoint2D arg0, SVPoint2D arg1) {
+                            Float o1 = new Float(arg0.fy);
+                            Float o2 = new Float(arg1.fy);
+                            return o1.compareTo(o2);
+                        }
+                    });
+                    int n = picks.size();
+                    if (n > 0) {
+                        tnmo = "tnmo=";
+                        vnmo = "vnmo=";
+                        for (int j = 0; j < n; j++) {
+                            tnmo += String.format(Locale.ENGLISH, "%.2f", picks.get(j).fy);
+                            if (j < n - 1) {
+                                tnmo += ",";
+                            }
+                            vnmo += String.format(Locale.ENGLISH, "%.2f", picks.get(j).fx);
+                            if (j < n - 1) {
+                                vnmo += ",";
+                            }
+                        }
+
+                        pw.println(tnmo);
+                        pw.println(vnmo);
+                    }
                 }
             }
             pw.close();
@@ -2443,11 +2450,13 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
         }
     }
 
-    /* Tools->Create velocity model */
+    /*
+     * Tools->Create velocity model
+     */
     class CreateVelocityModelAction extends AbstractAction {
 
-        public CreateVelocityModelAction() {
-            super("Create velocity model");
+        public CreateVelocityModelAction(ImageIcon icon) {           
+            super("", icon);
             //putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_V));
         }
 
