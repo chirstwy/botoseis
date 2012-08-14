@@ -1225,9 +1225,7 @@ private void btnNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
     if (m_ready) {
         m_curCDP += m_cdpInterval;
 
-        if (m_curCDP == m_cdpMax) {
-            btnNext.setEnabled(false);
-        }
+       
 
         workOnCDP(m_curCDP);
 
@@ -1342,20 +1340,28 @@ private void btnPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
     if (m_ready) {
         m_curCDP -= m_cdpInterval;
 
-        if (m_curCDP == m_cdpMin) {
-            btnPrev.setEnabled(false);
-        }
 
         workOnCDP(m_curCDP);
 
-        btnNext.setEnabled(true);
+
     }
 }//GEN-LAST:event_btnPrevActionPerformed
 
-    private void workOnCDP(int cdp) {
+    public void workOnCDP(int cdp) {
+
         clearTemps();
 
         m_curCDP = cdp;
+        btnNext.setEnabled(true);
+        btnPrev.setEnabled(true);
+        if (m_curCDP == m_cdpMin) {
+            btnPrev.setEnabled(false);
+
+        }
+        if (m_curCDP == m_cdpMax) {
+            btnNext.setEnabled(false);
+
+        }
 
         showCDP(cdp);
         showSemblance(cdp);
@@ -1812,7 +1818,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             float f2 = sc.getF2();
             float d1 = sc.getD1();
             float d2 = sc.getD2();
-            System.out.println("N1: "+n1+" N2: "+n2+" F1: "+f1+" F2 "+f2+" D1: "+d1+" D2: "+d2);
+            System.out.println("N1: " + n1 + " N2: " + n2 + " F1: " + f1 + " F2 " + f2 + " D1: " + d1 + " D2: " + d2);
 
             float a = ((m_cvsvmax - m_cvsvmin) / m_cvsNumPanels);
             d2 = ((m_cvsvmax + a / 2) - (m_cvsvmin - a / 2)) / n2;
@@ -2455,7 +2461,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
      */
     class CreateVelocityModelAction extends AbstractAction {
 
-        public CreateVelocityModelAction(ImageIcon icon) {           
+        public CreateVelocityModelAction(ImageIcon icon) {
             super("", icon);
             //putValue(Action.MNEMONIC_KEY, new Integer(KeyEvent.VK_V));
         }
