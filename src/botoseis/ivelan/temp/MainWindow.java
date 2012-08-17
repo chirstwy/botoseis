@@ -10,6 +10,7 @@
  */
 package botoseis.ivelan.temp;
 
+import botoseis.mainGui.utils.Preferences;
 import gfx.AxisPanel;
 import gfx.GfxPanelColorbar;
 import gfx.SVColorScale;
@@ -32,6 +33,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
+import usrdata.SUSection;
 
 /**
  *
@@ -386,6 +388,8 @@ public class MainWindow extends javax.swing.JFrame {
         jSeparator1.setVisible(false);
         m_currMapType = SVColorScale.HSV;
         m_currMapColor = 2;
+        preferences = Preferences.getPreferences();
+        System.out.println("USING FORMAT: "+preferences.getFormat());
 
 
     }
@@ -1147,7 +1151,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void updateVelocityPicksCurve(float v, float t) {
-        if (m_currentCDPVelocityPicks.size() > 0) {
+        if (m_currentCDPVelocityPicks != null && m_currentCDPVelocityPicks.size() > 0) {
             dvwnd.velocity.setVisible(true);
             float[] lm = gfxPanelCDP.getAxisLimits();
             float[] lm2 = dvwnd.gfxPanelCDP.getAxisLimits();
@@ -1350,6 +1354,9 @@ private void btnPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
     public void workOnCDP(int cdp) {
 
         clearTemps();
+        if(cdp > (m_cdpMax)){            
+            cdp = m_cdpMax;
+        }
 
         m_curCDP = cdp;
         btnNext.setEnabled(true);
@@ -1504,6 +1511,10 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
         f = new java.io.File(nmoF);
         f.delete();
     }
+    
+     public void updatePreferences(SUSection section){
+        section.setFormat(preferences.getFormat());
+    }
 
     private void addVelocityPick(float v, float t, int vx, int vy) {
         gfx.SVPoint2D p = new gfx.SVPoint2D();
@@ -1584,6 +1595,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             p.waitFor();
 
             usrdata.SUSection sc = new usrdata.SUSection();
+            updatePreferences(sc);
             sc.readFromFile(nmoF);
 
             int n1 = sc.getN1();
@@ -1597,6 +1609,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
 
             gfx.SVWiggle wgActor = new gfx.SVWiggle();
             wgActor.setData(sc.getData(), n1, f1, d1, n2, f2, d2);
+            wgActor.setPercParameters(99);
 
             gfxPanelCDP.removeAllActors();
 
@@ -1644,6 +1657,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             p.waitFor();
 
             usrdata.SUSection sc = new usrdata.SUSection();
+            updatePreferences(sc);
             sc.readFromFile(outF);
 
             int n1 = sc.getN1();
@@ -1662,6 +1676,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
 
             gfx.SVWiggle wgActor = new gfx.SVWiggle();
             wgActor.setData(sc.getData(), n1, f1, d1, n2, f2, d2);
+            wgActor.setPercParameters(99);
 
             gfxPanelCDP.removeAllActors();
 
@@ -1729,6 +1744,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             p.waitFor();
 
             usrdata.SUSection sc = new usrdata.SUSection();
+            updatePreferences(sc);
             sc.readFromFile(smapF);
 
             int n1 = sc.getN1();
@@ -1774,6 +1790,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             String cvsF = String.format(m_tmpDir + "/" + "cvs-%d.su", cdp);
 
             usrdata.SUSection sc = new usrdata.SUSection();
+            updatePreferences(sc);
             java.io.File inpF = new java.io.File(m_inputFilePath);
             java.io.FileInputStream ifS = new java.io.FileInputStream(inpF);
 
@@ -1810,6 +1827,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             p.waitFor();
 
             sc = new usrdata.SUSection();
+            updatePreferences(sc);
             sc.readFromFile(cvsF);
 
             int n1 = sc.getN1();
@@ -1831,6 +1849,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
             gfx.SVColorScale csActor = new gfx.SVColorScale(3, gfx.SVColorScale.LSBFirst);
             csActor.setData(sc.getData(), n1, f1, d1, n2, f2, d2);
             csActor.setRGBColormap(0);
+            csActor.setImagePerc(99);
 
             gfxPanelCVS.removeAllActors();
 
@@ -2662,4 +2681,5 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
     int m_currMapType;
     int m_currMapColor;
     DataView dvwnd;
+    Preferences preferences;
 }

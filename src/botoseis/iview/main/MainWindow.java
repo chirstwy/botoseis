@@ -8,6 +8,7 @@ package botoseis.iview.main;
 import botoseis.iview.dialogs.DialogGain;
 import botoseis.iview.dialogs.DialogHeaderTrace;
 import botoseis.iview.dialogs.DialogParametersImage;
+import botoseis.mainGui.utils.Preferences;
 import gfx.SVActor;
 import gfx.AxisPanel;
 import gfx.GfxPanelColorbar;
@@ -54,6 +55,9 @@ public class MainWindow extends javax.swing.JFrame {
         mHeader.setDrawSize(1);
         mHeader.setVisible(true);
         gfxPanelCDP.addXYPlot(mHeader);
+        
+        preferences = Preferences.getPreferences();
+        System.out.println("USING FORMAT: "+preferences.getFormat());
 
 
         m_currMapColor = 2;
@@ -895,6 +899,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
     private void initData() {
         section = new usrdata.SUSection();
+        updatePreferences();
         section.setPreStakcData(!stackData);
         if (pkey != null) {
             section.setPkey(pkey);
@@ -903,6 +908,10 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         mapSection.add((Vector<SUTrace>) section.getTraces().clone());
 
 
+    }
+    
+    public void updatePreferences(){
+        section.setFormat(preferences.getFormat());
     }
 
     private void parseCommandLine(String args[]) {
@@ -1080,6 +1089,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
     DialogGain dlgGain;
     int m_currMapColor;
     int m_currMapType;
+    Preferences preferences;
 
     /**
      * @return the mHeader

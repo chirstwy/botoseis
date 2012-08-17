@@ -143,10 +143,10 @@ public class DataView extends javax.swing.JFrame {
             public void mouseClicked(MouseEvent e) {
                 SVPoint2D sv = gfxPanelCDP.getMouseLocation();
                 int trc = m_csActor.getTraceAt(sv.fx, sv.fy);
-                if(trc == 0 ){
-                    trc++;
-                }
-                int cdp = (int) (trc*f2);
+                
+                
+                int cdp = (int) ((mw.m_cdpMin) + (trc*d2));
+                System.out.println(trc+" " +cdp+ " "+d2);
                 mw.workOnCDP(cdp);
             }
 

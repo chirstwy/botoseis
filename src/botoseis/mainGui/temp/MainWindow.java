@@ -1,5 +1,6 @@
 package botoseis.mainGui.temp;
 
+import botoseis.mainGui.admin.EditPreferences;
 import botoseis.mainGui.main.*;
 import java.awt.event.ActionEvent;
 import java.util.GregorianCalendar;
@@ -30,6 +31,7 @@ import javax.swing.tree.TreePath;
 import botoseis.mainGui.usrproject.ProcessingLine;
 import botoseis.mainGui.utils.AboutDlg;
 import botoseis.mainGui.utils.DefaultNode;
+import botoseis.mainGui.utils.Preferences;
 import botoseis.mainGui.utils.RendererTree;
 import botoseis.mainGui.utils.Utils;
 import botoseis.mainGui.workflows.WorkflowModel;
@@ -44,6 +46,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class MainWindow extends javax.swing.JFrame {
+    
 
     public MainWindow() {
         initComponents();
@@ -108,6 +111,8 @@ public class MainWindow extends javax.swing.JFrame {
         }
 
         botoseis_root = botov.toString();
+        
+        preferences = Preferences.getPreferences();
 
 
         rootNode = new DefaultNode("", DefaultNode.PROJECT_TYPE);
@@ -262,6 +267,8 @@ public class MainWindow extends javax.swing.JFrame {
         fileSave = new javax.swing.JMenuItem();
         jSeparator17 = new javax.swing.JSeparator();
         fileExit = new javax.swing.JMenuItem();
+        menuEdit = new javax.swing.JMenu();
+        menuPreferences = new javax.swing.JMenuItem();
         optionsMenu2 = new javax.swing.JMenu();
         menuEditProcList = new javax.swing.JMenuItem();
         menuRecoveryProject = new javax.swing.JMenuItem();
@@ -404,7 +411,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel8.add(jToolBar4);
 
-        jPanel9.setLayout(new java.awt.GridLayout());
+        jPanel9.setLayout(new java.awt.GridLayout(1, 0));
 
         jSplitPane3.setDividerLocation(250);
         jSplitPane3.setMaximumSize(new java.awt.Dimension(10, 10));
@@ -436,7 +443,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel17.setBackground(new java.awt.Color(102, 102, 102));
 
-        jLabel9.setFont(new java.awt.Font("Dialog", 1, 11));
+        jLabel9.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel9.setForeground(new java.awt.Color(204, 204, 204));
         jLabel9.setText("Output");
         jLabel9.setAlignmentX(0.5F);
@@ -509,7 +516,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jPanel4.setBackground(new java.awt.Color(102, 102, 102));
 
-        labelProjectExplorer.setFont(new java.awt.Font("Dialog", 1, 11));
+        labelProjectExplorer.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         labelProjectExplorer.setForeground(new java.awt.Color(204, 204, 204));
         labelProjectExplorer.setText("Project explorer - ");
         labelProjectExplorer.setAlignmentX(0.5F);
@@ -540,7 +547,7 @@ public class MainWindow extends javax.swing.JFrame {
         jPanel7.setBackground(new java.awt.Color(102, 102, 102));
         jPanel7.setPreferredSize(new java.awt.Dimension(300, 29));
 
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11));
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel3.setForeground(new java.awt.Color(204, 204, 204));
         jLabel3.setText("Processes list");
         jLabel3.setAlignmentX(0.5F);
@@ -651,6 +658,18 @@ public class MainWindow extends javax.swing.JFrame {
         FileMenu.add(fileExit);
 
         mainMenuBar.add(FileMenu);
+
+        menuEdit.setText("Edit");
+
+        menuPreferences.setText("Preferences");
+        menuPreferences.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                menuPreferencesActionPerformed(evt);
+            }
+        });
+        menuEdit.add(menuPreferences);
+
+        mainMenuBar.add(menuEdit);
 
         optionsMenu2.setText("Options");
 
@@ -1153,6 +1172,13 @@ private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRS
     jSplitPane1.setDividerLocation(altura);
 }//GEN-LAST:event_formComponentResized
 
+    private void menuPreferencesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuPreferencesActionPerformed
+            EditPreferences editPre = new EditPreferences(this, true);
+            editPre.setVisible(true);
+            preferences = editPre.getP();
+            updatePreferences();
+    }//GEN-LAST:event_menuPreferencesActionPerformed
+
     private void selectFlowWindow(TreePath selPath) {
 
 
@@ -1323,7 +1349,9 @@ private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRS
     private javax.swing.JMenuBar mainMenuBar;
     private javax.swing.JMenuItem menuAbout;
     private javax.swing.JMenuItem menuDocumentation;
+    private javax.swing.JMenu menuEdit;
     private javax.swing.JMenuItem menuEditProcList;
+    private javax.swing.JMenuItem menuPreferences;
     private javax.swing.JMenuItem menuRecoveryProject;
     private javax.swing.JMenu optionsMenu2;
     private javax.swing.JPanel panelW;
@@ -1344,6 +1372,7 @@ private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRS
     public static DefaultNode NODECOPY;
     private DefaultNode rootNode;
     private HashMap<DefaultNode, FlowWindow> mapFlowWindow;
+    private Preferences preferences;
 
     private void addWorkFlow(String name) {
         try {
@@ -1458,6 +1487,24 @@ private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRS
      */
     public void setMapFlowWindow(HashMap<DefaultNode, FlowWindow> mapFlowWindow) {
         this.mapFlowWindow = mapFlowWindow;
+    }
+
+    /**
+     * @return the preferences
+     */
+    public Preferences getPreferences() {
+        return preferences;
+    }
+
+    /**
+     * @param preferences the preferences to set
+     */
+    public void setPreferences(Preferences preferences) {
+        this.preferences = preferences;
+    }
+
+    private void updatePreferences() {
+        
     }
 
     //
