@@ -143,10 +143,10 @@ public class DataView extends javax.swing.JFrame {
             public void mouseClicked(MouseEvent e) {
                 SVPoint2D sv = gfxPanelCDP.getMouseLocation();
                 int trc = m_csActor.getTraceAt(sv.fx, sv.fy);
-                
-                
-                int cdp = (int) ((mw.m_cdpMin) + (trc*d2));
-                System.out.println(trc+" " +cdp+ " "+d2);
+
+
+                int cdp = (int) ((mw.m_cdpMin) + (trc * d2));
+                System.out.println(trc + " " + cdp + " " + d2);
                 mw.workOnCDP(cdp);
             }
 
@@ -367,12 +367,14 @@ private void menuSmoothVelocityActionPerformed(java.awt.event.ActionEvent evt) {
         wndB = 1 + (int) Math.floor(wt / d1);
 
         int d = dlg.getCdpsInterval();
-        dcdp = (int) (Math.floor(d / d2) * d2);
+//        dcdp = (int) (Math.floor(d / d2) * d2);
+        dcdp = d;
         dt = dlg.getTimeInterval();
         dtime = (float) (Math.floor(dt / d1) * d1);
 
         int ncdps = 0;
-        float cdpMax = f2 + (n2 - 1) * d2;
+//        float cdpMax = f2 + (n2 - 1) * d2;
+        float cdpMax = mw.m_cdpMax;
         float val;
         do {
             val = f2 + ncdps * dcdp;
@@ -398,6 +400,7 @@ private void menuSmoothVelocityActionPerformed(java.awt.event.ActionEvent evt) {
 
         float[][] data = new float[ncdps][ntime];
         float[] tdata = new float[ncdps * ntime];
+        data = getDataInterp();
 
         int nskipCdp = (int) (dcdp / d2 - 1);
         int nskipTime = (int) (dtime / d1 - 1);
@@ -409,7 +412,7 @@ private void menuSmoothVelocityActionPerformed(java.awt.event.ActionEvent evt) {
             }
 //            System.out.println("");
         }
-        
+
 //        System.out.println(ntime + " " + f1 + " " + d1 + " " + n2 
 //                + " " + f2 + " " + d2 + " " + n1 + " " + f1 + " " 
 //                + dtime + " " + ncdps + " " + f2 + " " + dcdp+" "+d1out+" "+d2out);
@@ -520,15 +523,15 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                 }
             }
 
-             if (dtime != 0) {
+            if (dtime != 0) {
                 float[][] ddata = new float[data.length][ntime];
-               
+
                 int nskipCdp = (int) (dcdp / d2 - 1);
                 int nskipTime = (int) (dtime / d1 - 1);
-                smoothData(data, ddata, data.length, n1, data.length, ntime, nskipCdp, nskipTime, wndA, wndB);               
+                smoothData(data, ddata, data.length, n1, data.length, ntime, nskipCdp, nskipTime, wndA, wndB);
 
-                System.out.println(ntime + " " + f1 + " " + d1 + " " + n2 + " " 
-                        + f2 + " " + d2 + " " + n1 + " " + f1 + " " + dtime + " " 
+                System.out.println(ntime + " " + f1 + " " + d1 + " " + n2 + " "
+                        + f2 + " " + d2 + " " + n1 + " " + f1 + " " + dtime + " "
                         + ncdps + " " + f2 + " " + dcdp);
                 float[][] temp = new float[data.length][m_data[0].length];
                 resampleData(ddata, temp, ntime, f1, dtime, n2, f2, d2,
@@ -699,6 +702,107 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         ex.printStackTrace();
     }// TODO add your handling code here:
 }//GEN-LAST:event_menuSaveActionPerformed
+
+    public float[][] getDataInterp() {
+
+        int icdp = mw.m_cdpMin;
+        int ecdp = mw.m_cdpMax;
+        int ncdps = (ecdp - icdp) + 1;
+
+        int m_ns = mw.m_ns;
+        float m_dt = mw.m_dt;
+        float[][] data2 = new float[ncdps][m_ns];
+
+        float[][] data = new float[mw.m_velocityPicks.size()][m_ns];
+        int i2 = 0;
+        for (Integer key : mw.m_velocityPicks.keySet()) {
+            Vector<gfx.SVPoint2D> picks = mw.m_velocityPicks.get(key);
+            Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
+
+                @Override
+                public int compare(SVPoint2D arg0, SVPoint2D arg1) {
+                    Float o1 = new Float(arg0.fy);
+                    Float o2 = new Float(arg1.fy);
+                    return o1.compareTo(o2);
+                }
+            });
+            if (picks.size() > 0) {
+                int nv = picks.size();
+                nv += 2;
+                float[] ta = new float[nv];
+                float[] va = new float[nv];
+
+                ta[0] = 0.0f;
+                va[0] = picks.get(0).fx;
+                ta[nv - 1] = m_ns * m_dt;
+                va[nv - 1] = picks.get(picks.size() - 1).fx;
+
+                int k = 1;
+                for (int iv = 0; iv < picks.size(); iv++) {
+                    ta[k] = picks.get(iv).fy;
+                    va[k] = picks.get(iv).fx;
+                    System.out.println(ta[k] + " ########## " + va[k]);
+                    k++;
+                }
+
+                // Create interpolated data
+
+                for (int it = 0; it < m_ns; it++) {
+                    data[i2][it] = interpLinear(it * m_dt, ta, va);
+
+                }
+                i2++;
+            }
+        }
+
+        if (dtime != 0) {
+            float[][] ddata = new float[data.length][ntime];
+
+            int nskipCdp = (int) (dcdp / d2 - 1);
+            int nskipTime = (int) (dtime / d1 - 1);
+            smoothData(data, ddata, data.length, n1, data.length, ntime, nskipCdp, nskipTime, wndA, wndB);
+
+            System.out.println(ntime + " " + f1 + " " + d1 + " " + n2 + " "
+                    + f2 + " " + d2 + " " + n1 + " " + f1 + " " + dtime + " "
+                    + ncdps + " " + f2 + " " + dcdp);
+            float[][] temp = new float[data.length][m_data[0].length];
+            resampleData(ddata, temp, ntime, f1, dtime, n2, f2, d2,
+                    n1, f1, dt, data.length, f2, dcdp);
+            data = temp.clone();
+
+        }
+
+
+
+        for (int i = 0; i < ncdps; i++) {
+            int inc = mw.m_cdpInterval - 1;
+            int v = 0;
+            v = (i / mw.m_cdpInterval) * mw.m_cdpInterval;
+            int v2 = v + mw.m_cdpInterval;
+
+            if (v == 0) {
+
+                for (int it = 0; it < m_ns; it++) {
+                    data2[i][it] = data[0][it];
+                }
+            } else {
+                if (v == mw.m_velocityPicks.lastKey()) {
+                    for (int it = 0; it < m_ns; it++) {
+                        data2[i][it] = data[mw.m_velocityPicks.size() - 1][it];
+                    }
+                } else {
+                    for (int it = 0; it < m_ns; it++) {
+                        float dx = (float) ((data[(v2 / mw.m_cdpInterval) - 1][it] - data[(v / mw.m_cdpInterval) - 1][it]) / (mw.m_cdpInterval - 1.0));
+                        int d = i - v - 1;
+                        data2[i][it] = data[(v / mw.m_cdpInterval) - 1][it] + (dx * d);
+
+                    }
+                }
+            }
+        }
+
+        return data2;
+    }
 
     private void resampleData(float[][] input, float[][] output,
             int n1, float f1, float d1,

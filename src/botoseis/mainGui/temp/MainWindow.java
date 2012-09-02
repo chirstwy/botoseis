@@ -111,6 +111,11 @@ public class MainWindow extends javax.swing.JFrame {
         }
 
         botoseis_root = botov.toString();
+        userhome_root = System.getProperty("user.home")+"/.botoseis";
+        File f = new File(userhome_root);
+        if(!f.exists()){
+            f.mkdir();
+        }
         
         preferences = Preferences.getPreferences();
 
@@ -179,7 +184,7 @@ public class MainWindow extends javax.swing.JFrame {
     public void openRecentProject() {
         String prj = "";
         try {
-            File file = new File(botoseis_root + "/.last");
+            File file = new File(userhome_root + "/.last");
 
             if (file.exists()) {
                 BufferedReader buff = new BufferedReader(new FileReader(file));
@@ -741,7 +746,7 @@ public class MainWindow extends javax.swing.JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
 
         try {
-            BufferedWriter buff = new BufferedWriter(new FileWriter(botoseis_root + "/.last"));
+            BufferedWriter buff = new BufferedWriter(new FileWriter(userhome_root + "/.last"));
             String saida = "";
             for (int i = 0; i < rootNode.getChildCount(); i++) {
 
@@ -1368,6 +1373,7 @@ private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRS
     private OpenProjectAction openProjectAction = new OpenProjectAction();
     private SaveProjectAction saveProjectAction = new SaveProjectAction();
     private String botoseis_root;
+    private String userhome_root;
     private String pathFont;
     public static DefaultNode NODECOPY;
     private DefaultNode rootNode;

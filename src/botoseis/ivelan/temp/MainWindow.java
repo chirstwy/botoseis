@@ -2646,7 +2646,7 @@ private void menuShowVelocityGuideActionPerformed(java.awt.event.ActionEvent evt
     SortedMap<Integer, Vector<gfx.SVPoint2D>> m_mapPicksGuide = new TreeMap();
     // CDP parameters
     int m_cdpMin = 0;
-    private int m_cdpMax = 0;
+    public int m_cdpMax = 0;
     public int m_cdpInterval = 0;
     private float m_tmin = 0.0f;
     private float m_tmax = 0.0f;
