@@ -1,7 +1,8 @@
 package botoseis.mainGui.workflows;
 
 import botoseis.mainGui.prmview.ProcessParameter;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 /*
  * ParametersGroup.java
  *
@@ -11,13 +12,13 @@ import java.util.Vector;
 
 public class ParametersGroup {        
     public ParametersGroup(){
-        m_plist = new Vector<ProcessParameter>();
+        m_plist = new ArrayList<>();
     }
     
     public ParametersGroup(String name, String desc) {
         m_name = name;
         m_desc = desc;
-        m_plist = new Vector<ProcessParameter>();
+        m_plist = new ArrayList<>();
     }   
     
     public void addParameter(ProcessParameter p){
@@ -33,7 +34,7 @@ public class ParametersGroup {
         }
     }
     
-    public Vector<ProcessParameter> getParameters(){
+    public List<ProcessParameter> getParameters(){
         return m_plist;
     }
     
@@ -53,7 +54,7 @@ public class ParametersGroup {
         return m_name;
     }
     
-    private Vector<ProcessParameter> m_plist;
+    private List<ProcessParameter> m_plist;
     private String m_name;
     private String m_desc;
 }

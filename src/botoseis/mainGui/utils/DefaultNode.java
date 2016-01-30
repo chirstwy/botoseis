@@ -2,10 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package botoseis.mainGui.utils;
-
-
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -14,13 +11,9 @@ import botoseis.mainGui.usrproject.UserProject;
 
 /**
  *
- * 
+ *
  */
-
-
-
 public class DefaultNode extends DefaultMutableTreeNode implements MouseListener {
-
 
     public static int DEFUALT_TYPE = 000000;
     public static int PROJECT_TYPE = 111111;
@@ -30,13 +23,12 @@ public class DefaultNode extends DefaultMutableTreeNode implements MouseListener
     public static int PROCESS_TYPE = 555555;
 
     public static UserProject getProject(DefaultNode n) {
-        if(n.getType() == DefaultNode.PROJECT_TYPE){
+        if (n.getType() == PROJECT_TYPE) {
             return (UserProject) n.getUserObject();
-        }else{
+        } else {
             return getProject((DefaultNode) n.getParent());
         }
     }
-
 
     private int type;
 
@@ -44,24 +36,21 @@ public class DefaultNode extends DefaultMutableTreeNode implements MouseListener
         super();
     }
 
-   public DefaultNode(String nome , int type) {
-       super(nome);
-       this.type = type;
-   }
+    public DefaultNode(String nome, int type) {
+        super(nome);
+        this.type = type;
+    }
 
-   public DefaultNode(String nome, boolean arg1){
-       super(nome, arg1);
-   }
+    public DefaultNode(String nome, boolean arg1) {
+        super(nome, arg1);
+    }
 
-    public DefaultNode(Object arg , int type) {
+    public DefaultNode(Object arg, int type) {
 
         super(arg);
         this.type = type;
 
     }
-
-
-
 
     /**
      * @return the type
@@ -77,26 +66,29 @@ public class DefaultNode extends DefaultMutableTreeNode implements MouseListener
         this.type = type;
     }
 
+    @Override
     public void mouseClicked(MouseEvent e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public void mousePressed(MouseEvent e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public void mouseReleased(MouseEvent e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public void mouseEntered(MouseEvent e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
     public void mouseExited(MouseEvent e) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
-   
 
 }

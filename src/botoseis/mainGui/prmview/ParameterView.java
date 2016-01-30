@@ -1,5 +1,7 @@
 package botoseis.mainGui.prmview;
 
+import static javax.swing.BoxLayout.X_AXIS;
+
 /*
  * ParameterView.java
  *
@@ -11,7 +13,7 @@ package botoseis.mainGui.prmview;
 public abstract class ParameterView extends javax.swing.Box {
 
     public ParameterView(ProcessParameter prm) {
-        super(javax.swing.BoxLayout.X_AXIS);
+        super(X_AXIS);
         
         m_prm = new ProcessParameter();
         

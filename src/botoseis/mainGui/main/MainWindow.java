@@ -1,21 +1,18 @@
 package botoseis.mainGui.main;
 
 import java.awt.event.ActionEvent;
-import java.util.GregorianCalendar;
 import botoseis.mainGui.workflows.ProcessModel;
 import botoseis.mainGui.admin.ManageProcessesDlg;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
+import static botoseis.mainGui.admin.ManageProcessesDlg.loadProcessesList;
+import static botoseis.mainGui.autocomplete.Configurator.enableAutoCompletion;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import botoseis.mainGui.usrproject.UserProject;
 import botoseis.mainGui.workflows.WorkflowProcess;
-import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -30,14 +27,39 @@ import javax.swing.tree.TreePath;
 import botoseis.mainGui.usrproject.ProcessingLine;
 import botoseis.mainGui.utils.AboutDlg;
 import botoseis.mainGui.utils.DefaultNode;
+import static botoseis.mainGui.utils.DefaultNode.FLOW_TYPE;
+import static botoseis.mainGui.utils.DefaultNode.LINE_TYPE;
+import static botoseis.mainGui.utils.DefaultNode.PROJECT_TYPE;
 import botoseis.mainGui.utils.RendererTree;
-import botoseis.mainGui.utils.Utils;
+import static botoseis.mainGui.utils.Utils.deleteFile;
+import static botoseis.mainGui.utils.Utils.getCurrentPath;
+import static botoseis.mainGui.utils.Utils.setCurrentPath;
 import botoseis.mainGui.workflows.WorkflowModel;
 import java.awt.Dimension;
+import static java.awt.EventQueue.invokeLater;
 import java.awt.FlowLayout;
+import static java.awt.FlowLayout.LEFT;
+import static java.awt.event.MouseEvent.BUTTON3;
+import static java.lang.String.format;
+import static java.lang.System.exit;
+import static java.lang.System.getenv;
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.HOUR_OF_DAY;
+import static java.util.Calendar.MINUTE;
+import static java.util.Calendar.MONTH;
+import static java.util.Calendar.SECOND;
+import static java.util.Calendar.YEAR;
+import static javax.swing.BorderFactory.createTitledBorder;
 import javax.swing.JButton;
+import static javax.swing.JFileChooser.APPROVE_OPTION;
+import static javax.swing.JFileChooser.DIRECTORIES_ONLY;
 import javax.swing.JLabel;
+import static javax.swing.JOptionPane.YES_OPTION;
+import static javax.swing.JOptionPane.showConfirmDialog;
+import static javax.swing.JOptionPane.showInputDialog;
+import static javax.swing.JOptionPane.showMessageDialog;
 import javax.swing.JPanel;
+import static javax.swing.tree.TreeSelectionModel.SINGLE_TREE_SELECTION;
 
 public class MainWindow extends javax.swing.JFrame {
 
@@ -84,40 +106,36 @@ public class MainWindow extends javax.swing.JFrame {
         m_jobsPanel = new botoseis.mainGui.workflows.ProcessingJobsPanel();
 
         //m_consoleArea = new javax.swing.JTextArea();
-
         //m_processOutputTab.addTab("CONSOLE", m_consoleArea);
         m_processOutputTab.addTab("Jobs history", m_jobsPanel);
 
-        Object botov = System.getenv("BOTOSEIS_ROOT");
-        Object suv = System.getenv("CWPROOT");
+        Object botov = getenv("BOTOSEIS_ROOT");
+        Object suv = getenv("CWPROOT");
 
         if (botov == null) {
-            javax.swing.JOptionPane.showMessageDialog(this, "BOTOSEIS_ROOT environment variable must be set!\n" + "Set the corresponding variable and run BotoSeis again.");
-            System.exit(0);
+            showMessageDialog(this, "BOTOSEIS_ROOT environment variable must be set!\n" + "Set the corresponding variable and run BotoSeis again.");
+            exit(0);
         }
 
         if (suv == null) {
-            javax.swing.JOptionPane.showMessageDialog(this, "CWPROOT environment variable must be set!\n" + "Set the corresponding variable and run BotoSeis again.");
-            System.exit(0);
+            showMessageDialog(this, "CWPROOT environment variable must be set!\n" + "Set the corresponding variable and run BotoSeis again.");
+            exit(0);
         }
 
         botoseis_root = botov.toString();
 
-
-        rootNode = new DefaultNode("", DefaultNode.PROJECT_TYPE);
+        rootNode = new DefaultNode("", PROJECT_TYPE);
         DefaultTreeModel tm = new DefaultTreeModel(rootNode);
-
 
         areaExplorer.setModel(tm);
         areaExplorer.setRootVisible(false);
         areaExplorer.setCellRenderer(new RendererTree());
         DefaultTreeSelectionModel sm = new DefaultTreeSelectionModel();
-        sm.setSelectionMode(DefaultTreeSelectionModel.SINGLE_TREE_SELECTION);
+        sm.setSelectionMode(SINGLE_TREE_SELECTION);
         areaExplorer.setSelectionModel(sm);
 
         sm = new DefaultTreeSelectionModel();
         processesList.setSelectionModel(sm);
-
 
         initProcessesList();
         processesList.setCellRenderer(new RendererTree());
@@ -125,7 +143,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         java.util.Enumeration en = root.breadthFirstEnumeration();
 
-        java.util.Vector<Object> items = new java.util.Vector<Object>();
+        java.util.Vector<Object> items = new java.util.Vector<>();
         DefaultMutableTreeNode node;
         while (en.hasMoreElements()) {
             node = (DefaultMutableTreeNode) en.nextElement();
@@ -137,7 +155,7 @@ public class MainWindow extends javax.swing.JFrame {
         javax.swing.DefaultComboBoxModel cm = new javax.swing.DefaultComboBoxModel(items);
         comboProcessesList.setModel(cm);
 
-        botoseis.mainGui.autocomplete.Configurator.enableAutoCompletion(comboProcessesList);
+        enableAutoCompletion(comboProcessesList);
 
         fileNewLine.setEnabled(false);
         fileNewWorkflow.setEnabled(false);
@@ -148,16 +166,12 @@ public class MainWindow extends javax.swing.JFrame {
         jSplitPane3.setOneTouchExpandable(true);
         jSplitPane4.setOneTouchExpandable(true);
 
-        JPanel jp = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel jp = new JPanel(new FlowLayout(LEFT));
         JButton clear = new JButton(new javax.swing.ImageIcon(getClass().getResource("/botoseis/pics/trash.png")));
-        clear.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                 m_consoleArea.setText("");
-            }
+        clear.addActionListener((ActionEvent e) -> {
+            m_consoleArea.setText("");
         });
-        clear.setPreferredSize(new Dimension(16,16));
+        clear.setPreferredSize(new Dimension(16, 16));
         clear.setToolTipText("Clear console");
         jp.add(new JLabel("Console"));
         jp.add(clear);
@@ -171,29 +185,29 @@ public class MainWindow extends javax.swing.JFrame {
             File file = new File(botoseis_root + "/.last");
 
             if (file.exists()) {
-                BufferedReader buff = new BufferedReader(new FileReader(file));
-                prj = buff.readLine();
-                buff.close();
+                try (BufferedReader buff = new BufferedReader(new FileReader(file))) {
+                    prj = buff.readLine();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (prj != null && !prj.trim().equals("")) {
+        if (prj != null && !prj.trim().isEmpty()) {
             String split[] = prj.split("##@@");
-            for (int i = 0; i < split.length; i++) {
-                File file = new File(split[i]);
+            for (String split1 : split) {
+                File file = new File(split1);
                 if (file.exists()) {
-                    new OpenProjectAction(split[i]).exec();
+                    new OpenProjectAction(split1).exec();
                 }
             }
 
         }
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -753,8 +767,7 @@ public class MainWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
 
-        try {
-            BufferedWriter buff = new BufferedWriter(new FileWriter(botoseis_root + "/.last"));
+        try (BufferedWriter buff = new BufferedWriter(new FileWriter(botoseis_root + "/.last"))) {
             String saida = "";
             for (int i = 0; i < rootNode.getChildCount(); i++) {
 
@@ -763,7 +776,6 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }
             buff.write(saida);
-            buff.close();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -773,12 +785,12 @@ public class MainWindow extends javax.swing.JFrame {
             private void jMenuItem12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem12ActionPerformed
                 ManageProcessesDlg dlg = new ManageProcessesDlg(this, true);
                 dlg.setVisible(true);
-            //processesList.setModel();
+                //processesList.setModel();
     }//GEN-LAST:event_jMenuItem12ActionPerformed
 
             private void fileNewLineActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNewLineActionPerformed
 
-                String lineName = JOptionPane.showInputDialog(areaExplorer, "Enter a name for the line");
+                String lineName = showInputDialog(areaExplorer, "Enter a name for the line");
 
                 if (lineName != null) {
                     addNewLine(lineName);
@@ -787,7 +799,7 @@ public class MainWindow extends javax.swing.JFrame {
 }//GEN-LAST:event_fileNewLineActionPerformed
 
             private void fileNewWorkflowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNewWorkflowActionPerformed
-                String name = JOptionPane.showInputDialog(areaExplorer, "Enter workflow name.");
+                String name = showInputDialog(areaExplorer, "Enter workflow name.");
                 if (name != null) {
                     addWorkFlow(name);
                 }
@@ -801,7 +813,7 @@ public class MainWindow extends javax.swing.JFrame {
 }//GEN-LAST:event_menuAboutActionPerformed
 
             private void fileExit1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileExit1ActionPerformed
-                System.exit(0);
+                exit(0);
             }//GEN-LAST:event_fileExit1ActionPerformed
 
             private void btnRemoveProcessFromWorkflowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRemoveProcessFromWorkflowActionPerformed
@@ -846,10 +858,10 @@ private void btnRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:
 
         java.util.GregorianCalendar today = new java.util.GregorianCalendar();
 
-        jobHome += String.format("/%d-%d-%d--%d-%d-%d", today.get(GregorianCalendar.MONTH),
-                today.get(GregorianCalendar.DATE), today.get(GregorianCalendar.YEAR),
-                today.get(GregorianCalendar.HOUR_OF_DAY), today.get(GregorianCalendar.MINUTE),
-                today.get(GregorianCalendar.SECOND));
+        jobHome += format("/%d-%d-%d--%d-%d-%d", today.get(MONTH),
+                today.get(DATE), today.get(YEAR),
+                today.get(HOUR_OF_DAY), today.get(MINUTE),
+                today.get(SECOND));
 
         java.io.File jobF = new java.io.File(jobHome);
 
@@ -857,10 +869,9 @@ private void btnRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:
             botoseis.mainGui.workflows.WorkflowJob njob = new botoseis.mainGui.workflows.WorkflowJob(jobHome, m_currentWorkflow, m_consoleArea);
             njob.start();
 
-
             m_jobsPanel.addJob(njob);
         } else {
-            javax.swing.JOptionPane.showMessageDialog(null,
+            showMessageDialog(null,
                     "Coudn't create project folder: " + jobHome);
         }
     }
@@ -868,8 +879,8 @@ private void btnRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:
 
 private void processesListValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_processesListValueChanged
     if (evt.isAddedPath()) {
-        DefaultNode node =
-                (DefaultNode) processesList.getSelectionPath().getLastPathComponent();
+        DefaultNode node
+                = (DefaultNode) processesList.getSelectionPath().getLastPathComponent();
         if (node.getUserObject() instanceof ProcessModel) {
             comboProcessesList.setSelectedItem(node.getUserObject());
         }
@@ -901,7 +912,6 @@ private void areaExplorerValueChanged(javax.swing.event.TreeSelectionEvent evt) 
         String str = labelProjectExplorer.getName() + m_activeProject.getTitle();
         labelProjectExplorer.setText(str);
 
-
         if (n.getUserObject() instanceof botoseis.mainGui.workflows.WorkflowModel) {
             DefaultNode parent = (DefaultNode) n.getParent();
             if (parent.getUserObject() instanceof botoseis.mainGui.usrproject.ProcessingLine) {
@@ -926,7 +936,7 @@ private void areaExplorerValueChanged(javax.swing.event.TreeSelectionEvent evt) 
         if (m_currentWorkflow == null) {
             m_workflowView.clear();
             parametersPanel.removeAll();
-            parametersPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Parameters"));
+            parametersPanel.setBorder(createTitledBorder("Parameters"));
             parametersPanel.updateUI();
         }
     }
@@ -938,7 +948,7 @@ private void fileCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIR
     m_currentWorkflow = null;
     m_workflowView.clear();
     parametersPanel.removeAll();
-    parametersPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Parameters"));
+    parametersPanel.setBorder(createTitledBorder("Parameters"));
     parametersPanel.updateUI();
 
     rootNode.remove(getProject(m_activeProject));
@@ -956,97 +966,70 @@ private void fileCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIR
 
 private void areaExplorerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_areaExplorerMouseClicked
 
-
     areaExplorer.setSelectionPath(areaExplorer.getClosestPathForLocation(evt.getX(), evt.getY()));
     DefaultNode node = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
     if (node != null) {
-        if (evt.getButton() == MouseEvent.BUTTON3) {
+        if (evt.getButton() == BUTTON3) {
             JMenuItem newFlow = new JMenuItem("New Workflow");
             newFlow.setToolTipText("New Workflow");
-            newFlow.addActionListener(new java.awt.event.ActionListener() {
-
-                public void actionPerformed(java.awt.event.ActionEvent evt) {
-                    fileNewWorkflowActionPerformed(evt);
-                }
-            });
+            newFlow.addActionListener(this::fileNewWorkflowActionPerformed);
 
             JMenuItem newLine = new JMenuItem("New Line");
             newLine.setToolTipText("New Line");
-            newLine.addActionListener(new ActionListener() {
-
-                public void actionPerformed(ActionEvent e) {
-                    fileNewLineActionPerformed(e);
-                }
-            });
+            newLine.addActionListener(this::fileNewLineActionPerformed);
 
             JPopupMenu jpm = new JPopupMenu();
 
             JMenuItem copy = new JMenuItem("Copy");
-            copy.addActionListener(new ActionListener() {
-
-                public void actionPerformed(ActionEvent e) {
-                    NODECOPY = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
-                }
+            copy.addActionListener((ActionEvent e) -> {
+                NODECOPY = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
             });
 
-
             JMenuItem paste = new JMenuItem("Paste");
-            paste.addActionListener(new ActionListener() {
-
-                public void actionPerformed(ActionEvent e) {
-                    if (NODECOPY != null) {
-
-                        if (NODECOPY.getType() == DefaultNode.FLOW_TYPE) {
-                            addWorkFlow(NODECOPY);
-                        }
+            paste.addActionListener((ActionEvent e) -> {
+                if (NODECOPY != null) {
+                    if (NODECOPY.getType() == FLOW_TYPE) {
+                        addWorkFlow(NODECOPY);
                     }
                 }
             });
 
-
-            if (node.getType() == DefaultNode.LINE_TYPE) {
+            if (node.getType() == LINE_TYPE) {
                 JMenuItem renameLine = new JMenuItem("Rename");
                 renameLine.setToolTipText("Rename the selected line");
-                renameLine.addActionListener(new ActionListener() {
-
-                    public void actionPerformed(ActionEvent e) {
-                        boolean valid = false;
-                        String newName = null;
-                        while (!valid) {
-                            newName = JOptionPane.showInputDialog(areaExplorer, "New Name");
-                            if (newName == null) {
-                                break;
-                            }
-                            if (newName.trim().equals("")) {
-                                JOptionPane.showMessageDialog(areaExplorer, "Invalid name");
-                            } else {
-                                valid = true;
-                            }
+                renameLine.addActionListener((ActionEvent e) -> {
+                    boolean valid1 = false;
+                    String newName = null;
+                    while (!valid1) {
+                        newName = showInputDialog(areaExplorer, "New Name");
+                        if (newName == null) {
+                            break;
                         }
-                        if (valid) {
-                            DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
-                            ProcessingLine line = (ProcessingLine) selNode.getUserObject();
-                            line.rename(newName);
-                            m_activeProject.reloadLines();
-                            areaExplorer.updateUI();
+                        if (newName.trim().isEmpty()) {
+                            showMessageDialog(areaExplorer, "Invalid name");
+                        } else {
+                            valid1 = true;
                         }
+                    }
+                    if (valid1) {
+                        DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
+                        ProcessingLine line = (ProcessingLine) selNode.getUserObject();
+                        line.rename(newName);
+                        m_activeProject.reloadLines();
+                        areaExplorer.updateUI();
                     }
                 });
 
                 JMenuItem removeLine = new JMenuItem("Remove");
                 removeLine.setToolTipText("Remove the selected line");
-                removeLine.addActionListener(new ActionListener() {
-
-                    public void actionPerformed(ActionEvent e) {
-                        DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
-                        ProcessingLine line = (ProcessingLine) selNode.getUserObject();
-                        if (JOptionPane.showConfirmDialog(areaExplorer, "Are you sure you want to permanently remove the line # " + line.getTitle() + " # ?\nDirectory: " + line.getHomedir()) == JOptionPane.YES_OPTION) {
-
-                            ((DefaultMutableTreeNode) selNode.getParent()).remove(selNode);
-                            m_activeProject.removeLine(selNode.toString());
-                            areaExplorer.updateUI();
-                            m_activeProject.reloadLines();
-                        }
+                removeLine.addActionListener((ActionEvent e) -> {
+                    DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
+                    ProcessingLine line = (ProcessingLine) selNode.getUserObject();
+                    if (showConfirmDialog(areaExplorer, "Are you sure you want to permanently remove the line # " + line.getTitle() + " # ?\nDirectory: " + line.getHomedir()) == YES_OPTION) {
+                        ((DefaultMutableTreeNode) selNode.getParent()).remove(selNode);
+                        m_activeProject.removeLine(selNode.toString());
+                        areaExplorer.updateUI();
+                        m_activeProject.reloadLines();
                     }
                 });
 
@@ -1058,111 +1041,83 @@ private void areaExplorerMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRS
                 jpm.add(newLine);
                 jpm.addSeparator();
                 jpm.add(newFlow);
+            } else if (node.getType() == FLOW_TYPE) {
+                JMenuItem renemaFlow = new JMenuItem("Rename");
+                renemaFlow.setToolTipText("Rename the selected workflow");
+                renemaFlow.addActionListener((java.awt.event.ActionEvent evt1) -> {
+                    boolean valid1 = false;
+                    String newName = null;
+                    while (!valid1) {
+                        newName = showInputDialog(areaExplorer, "New Name");
+                        if (newName == null) {
+                            break;
+                        }
+                        if (newName.trim().isEmpty()) {
+                            showMessageDialog(areaExplorer, "Invalid name");
+                        } else {
+                            valid1 = true;
+                        }
+                    }
+                    if (valid1) {
+                        DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
+                        WorkflowModel wm = (WorkflowModel) selNode.getUserObject();
+                        wm.renameFlow(newName);
+                        File file = new File(wm.getHomedir());
+                        m_activeProject.reloadFlows(file.getParent());
+                        areaExplorer.updateUI();
+                    }
+                });
+
+                JMenuItem removeFlow = new JMenuItem("Remove");
+                removeFlow.setToolTipText("Remove the selected workflow");
+                removeFlow.addActionListener((java.awt.event.ActionEvent evt1) -> {
+                    DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
+                    WorkflowModel wm = (WorkflowModel) selNode.getUserObject();
+                    if (showConfirmDialog(areaExplorer, "Are you sure you want to permanently remove the workflow # " + wm.getTitle() + " # ?\nDirectory: " + wm.getHomedir()) == YES_OPTION) {
+                        DefaultNode parent1 = (DefaultNode) selNode.getParent();
+                        if (parent1.getUserObject() instanceof ProcessingLine) {
+                            ProcessingLine line = (ProcessingLine) (parent1).getUserObject();
+                            line.removeFlow(wm);
+                        } else {
+                            m_activeProject.selectLine("GlobalLine").removeFlow(wm);
+                        }
+                        wm.remove();
+                        parent1.remove(selNode);
+                        m_workflowView.repaint();
+                        areaExplorer.updateUI();
+                    }
+                });
+
+                jpm.add(copy);
+                jpm.add(paste);
+                jpm.addSeparator();
+                jpm.add(renemaFlow);
+                jpm.add(removeFlow);
+                jpm.addSeparator();
+                jpm.add(newFlow);
+
             } else {
-                if (node.getType() == DefaultNode.FLOW_TYPE) {
-                    JMenuItem renemaFlow = new JMenuItem("Rename");
-                    renemaFlow.setToolTipText("Rename the selected workflow");
-                    renemaFlow.addActionListener(new java.awt.event.ActionListener() {
 
-                        public void actionPerformed(java.awt.event.ActionEvent evt) {
+                JMenuItem save = new JMenuItem("Save");
+                save.setToolTipText("Save project");
 
-                            boolean valid = false;
-                            String newName = null;
-                            while (!valid) {
-                                newName = JOptionPane.showInputDialog(areaExplorer, "New Name");
-                                if (newName == null) {
-                                    break;
-                                }
-                                if (newName.trim().equals("")) {
-                                    JOptionPane.showMessageDialog(areaExplorer, "Invalid name");
-                                } else {
-                                    valid = true;
-                                }
-                            }
-                            if (valid) {
-                                DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
-                                WorkflowModel wm = (WorkflowModel) selNode.getUserObject();
-                                wm.renameFlow(newName);
-                                File file = new File(wm.getHomedir());
-                                m_activeProject.reloadFlows(file.getParent());
-                                areaExplorer.updateUI();
-                            }
-                        }
-                    });
+                save.addActionListener(new SaveProjectAction());
 
-                    JMenuItem removeFlow = new JMenuItem("Remove");
-                    removeFlow.setToolTipText("Remove the selected workflow");
-                    removeFlow.addActionListener(new java.awt.event.ActionListener() {
+                JMenuItem close = new JMenuItem("Close");
+                close.setToolTipText("Close project");
+                close.addActionListener(this::fileCloseActionPerformed);
 
-                        public void actionPerformed(java.awt.event.ActionEvent evt) {
+                JMenuItem delete = new JMenuItem("Delete");
+                delete.setToolTipText("Close project");
+                delete.addActionListener(this::fileDeleteActionPerformed);
 
-                            DefaultNode selNode = (DefaultNode) areaExplorer.getLastSelectedPathComponent();
-                            WorkflowModel wm = (WorkflowModel) selNode.getUserObject();
-                            if (JOptionPane.showConfirmDialog(areaExplorer, "Are you sure you want to permanently remove the workflow # " + wm.getTitle() + " # ?\nDirectory: " + wm.getHomedir()) == JOptionPane.YES_OPTION) {
-                                DefaultNode parent = (DefaultNode) selNode.getParent();
-                                if (parent.getUserObject() instanceof ProcessingLine) {
-                                    ProcessingLine line = (ProcessingLine) (parent).getUserObject();
-                                    line.removeFlow(wm);
-                                } else {
-                                    m_activeProject.selectLine("GlobalLine").removeFlow(wm);
-                                }
-
-                                wm.remove();
-                                parent.remove(selNode);
-                                m_workflowView.repaint();
-                                areaExplorer.updateUI();
-                            }
-                        }
-                    });
-
-
-
-                    jpm.add(copy);
-                    jpm.add(paste);
-                    jpm.addSeparator();
-                    jpm.add(renemaFlow);
-                    jpm.add(removeFlow);
-                    jpm.addSeparator();
-                    jpm.add(newFlow);
-
-
-
-                } else {
-
-                    JMenuItem save = new JMenuItem("Save");
-                    save.setToolTipText("Save project");
-
-                    save.addActionListener(new SaveProjectAction());
-
-                    JMenuItem close = new JMenuItem("Close");
-                    close.setToolTipText("Close project");
-                    close.addActionListener(new java.awt.event.ActionListener() {
-
-                        public void actionPerformed(java.awt.event.ActionEvent evt) {
-                            fileCloseActionPerformed(evt);
-                        }
-                    });
-
-                    JMenuItem delete = new JMenuItem("Delete");
-                    delete.setToolTipText("Close project");
-                    delete.addActionListener(new java.awt.event.ActionListener() {
-
-                        public void actionPerformed(java.awt.event.ActionEvent evt) {
-                            fileDeleteActionPerformed(evt);
-                        }
-                    });
-
-
-                    jpm.add(close);
-                    jpm.addSeparator();
-                    jpm.add(newLine);
-                    jpm.add(newFlow);
-                    jpm.addSeparator();
-                    jpm.add(delete);
-                }
-
+                jpm.add(close);
+                jpm.addSeparator();
+                jpm.add(newLine);
+                jpm.add(newFlow);
+                jpm.addSeparator();
+                jpm.add(delete);
             }
-
 
             jpm.show(areaExplorer, evt.getX(), evt.getY());
         }
@@ -1182,17 +1137,17 @@ private void menuRecoveryProjectActionPerformed(java.awt.event.ActionEvent evt) 
 private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileDeleteActionPerformed
 
 //        JOptionPane.showMessageDialog(null,m_activeProject.getprojHomeDir());
-        if (JOptionPane.showConfirmDialog(null, m_activeProject.getprojHomeDir()+"\nAre you sure?") == JOptionPane.YES_OPTION) {
+    if (showConfirmDialog(null, m_activeProject.getprojHomeDir() + "\nAre you sure?") == YES_OPTION) {
 
-            if (m_activeProject != null) {
-                Utils.deleteFile(new File(m_activeProject.getprojHomeDir()));
-                rootNode.remove(getProject(m_activeProject));
-                ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
-                m_activeProject = null;
-                JOptionPane.showMessageDialog(null, "Project successfully deleted");
-            }
+        if (m_activeProject != null) {
+            deleteFile(new File(m_activeProject.getprojHomeDir()));
+            rootNode.remove(getProject(m_activeProject));
+            ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
+            m_activeProject = null;
+            showMessageDialog(null, "Project successfully deleted");
         }
-    
+    }
+
 }//GEN-LAST:event_fileDeleteActionPerformed
 
     private void loadJobsHistory(botoseis.mainGui.workflows.WorkflowModel m) {
@@ -1201,7 +1156,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
 
         String[] jlist = jobsdir.list();
 
-        for (int i = 0; i < jlist.length; i++) {
+        for (String jlist1 : jlist) {
         }
     }
 
@@ -1209,22 +1164,18 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                new MainWindow().setVisible(true);
-            }
+        invokeLater(() -> {
+            new MainWindow().setVisible(true);
         });
     }
 
     public void initProcessesList() {
-        DefaultTreeModel tm = ManageProcessesDlg.loadProcessesList();
+        DefaultTreeModel tm = loadProcessesList();
         processesList.setModel(tm);
 
     }
 
-  
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenu FileMenu;
     private javax.swing.JMenu HelpMenu2;
@@ -1313,13 +1264,13 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
 
             if (m_selectedLineNode != null && (m_selectedLineNode.getUserObject() instanceof botoseis.mainGui.usrproject.ProcessingLine)) {
                 // Insert new workflow in the selected line
-                DefaultNode node = new DefaultNode(sw, DefaultNode.FLOW_TYPE);
+                DefaultNode node = new DefaultNode(sw, FLOW_TYPE);
                 DefaultTreeModel tm = (DefaultTreeModel) areaExplorer.getModel();
                 tm.insertNodeInto(node, m_selectedLineNode,
                         m_selectedLineNode.getChildCount());
 
             } else {
-                DefaultNode node = new DefaultNode(sw, DefaultNode.FLOW_TYPE);
+                DefaultNode node = new DefaultNode(sw, FLOW_TYPE);
                 DefaultTreeModel tm = (DefaultTreeModel) areaExplorer.getModel();
                 tm.insertNodeInto(node, (DefaultNode) tm.getRoot(),
                         ((DefaultNode) tm.getRoot()).getChildCount());
@@ -1327,7 +1278,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
             }
             saveProjectAction.actionPerformed(null);
         } catch (NullPointerException e) {
-            javax.swing.JOptionPane.showMessageDialog(this, e.toString());
+            showMessageDialog(this, e.toString());
         }
     }
 
@@ -1338,7 +1289,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
             WorkflowModel clone = sm.clone();
 
             while (m_activeProject.addWorkflow(clone.getTitle())) {
-                String name = JOptionPane.showInputDialog("Name invalid!. Type the new name:").trim();
+                String name = showInputDialog("Name invalid!. Type the new name:").trim();
                 clone.setTitle(name);
             }
             botoseis.mainGui.workflows.WorkflowModel sw = m_activeProject.selectWorkflow(clone.getTitle());
@@ -1348,13 +1299,13 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
 
             if (m_selectedLineNode != null && (m_selectedLineNode.getUserObject() instanceof botoseis.mainGui.usrproject.ProcessingLine)) {
                 // Insert new workflow in the selected line
-                DefaultNode node = new DefaultNode(clone, DefaultNode.FLOW_TYPE);
+                DefaultNode node = new DefaultNode(clone, FLOW_TYPE);
                 DefaultTreeModel tm = (DefaultTreeModel) areaExplorer.getModel();
                 tm.insertNodeInto(node, m_selectedLineNode,
                         m_selectedLineNode.getChildCount());
 
             } else {
-                DefaultNode node = new DefaultNode(clone, DefaultNode.FLOW_TYPE);
+                DefaultNode node = new DefaultNode(clone, FLOW_TYPE);
                 DefaultTreeModel tm = (DefaultTreeModel) areaExplorer.getModel();
                 tm.insertNodeInto(node, (DefaultNode) tm.getRoot(),
                         ((DefaultNode) tm.getRoot()).getChildCount());
@@ -1363,7 +1314,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
             saveProjectAction.actionPerformed(null);
         } catch (NullPointerException e) {
             e.printStackTrace();
-            javax.swing.JOptionPane.showMessageDialog(this, e.toString());
+            showMessageDialog(this, e.toString());
 
         }
     }
@@ -1374,7 +1325,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
 
         if (!line.toString().equalsIgnoreCase("GlobalLine")) {
 
-            DefaultNode node = new DefaultNode(line, DefaultNode.LINE_TYPE);
+            DefaultNode node = new DefaultNode(line, LINE_TYPE);
 
             DefaultTreeModel tm = (DefaultTreeModel) areaExplorer.getModel();
 //            DefaultNode root = (DefaultNode) tm.getRoot();
@@ -1438,7 +1389,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
             String str = labelProjectExplorer.getName() + m_activeProject.getTitle();
             labelProjectExplorer.setText(str);
 
-            DefaultNode root = new DefaultNode(m_activeProject, DefaultNode.PROJECT_TYPE);
+            DefaultNode root = new DefaultNode(m_activeProject, PROJECT_TYPE);
             m_activeProject.fillLinesList(root);
             rootNode.add(root);
             ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
@@ -1448,22 +1399,21 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
         }
 
         public void actionPerformed(ActionEvent e) {
-            javax.swing.JFileChooser jfc = new javax.swing.JFileChooser(new File(Utils.getCurrentPath()));
-            jfc.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+            javax.swing.JFileChooser jfc = new javax.swing.JFileChooser(new File(getCurrentPath()));
+            jfc.setFileSelectionMode(DIRECTORIES_ONLY);
 
             int ret = jfc.showOpenDialog(null);
 
-            if (ret == javax.swing.JFileChooser.APPROVE_OPTION) {
+            if (ret == APPROVE_OPTION) {
                 String prjHome = jfc.getSelectedFile().toString();
-                Utils.setCurrentPath(prjHome);
+                setCurrentPath(prjHome);
 
                 m_activeProject = new UserProject(prjHome, "noname");
                 m_activeProject.open(prjHome);
                 String str = labelProjectExplorer.getName() + m_activeProject.getTitle();
                 labelProjectExplorer.setText(str);
 
-                DefaultNode root = new DefaultNode(m_activeProject, DefaultNode.PROJECT_TYPE);
-
+                DefaultNode root = new DefaultNode(m_activeProject, PROJECT_TYPE);
 
                 m_activeProject.fillLinesList(root);
                 rootNode.add(root);
@@ -1491,7 +1441,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
                 java.io.File f = new java.io.File(dlg.prjFolder.getText());
                 if (f.exists()) {
                     String s = dlg.prjFolder.getText();
-                    javax.swing.JOptionPane.showMessageDialog(null,
+                    showMessageDialog(null,
                             "Selected folder already exists: " + s);
                 } else if (f.mkdir()) {
                     m_activeProject = new UserProject(dlg.prjFolder.getText(),
@@ -1502,11 +1452,10 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
 
                     fileNewLine.setEnabled(true);
                     m_activeProject.save();
-                    DefaultNode root = new DefaultNode(m_activeProject, DefaultNode.PROJECT_TYPE);
+                    DefaultNode root = new DefaultNode(m_activeProject, PROJECT_TYPE);
                     rootNode.add(root);
 
 //                    DefaultTreeModel tm = new DefaultTreeModel(root);
-
 //                    areaExplorer.setModel(tm);
 //                    areaExplorer.setRootVisible(true);
                     ((DefaultTreeModel) areaExplorer.getModel()).setRoot(rootNode);
@@ -1514,7 +1463,7 @@ private void fileDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FI
                     fileNewWorkflow.setEnabled(true);
                 } else {
                     String s = dlg.prjFolder.getText();
-                    javax.swing.JOptionPane.showMessageDialog(null,
+                    showMessageDialog(null,
                             "Coudn't create project folder: " + s);
                 }
             }

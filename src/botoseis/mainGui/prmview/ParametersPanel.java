@@ -1,13 +1,23 @@
 package botoseis.mainGui.prmview;
 
+import static botoseis.mainGui.utils.Utils.getBotoseisROOT;
 import botoseis.mainGui.workflows.ParametersGroup;
 import botoseis.mainGui.workflows.ProcessModel;
+import static java.awt.BorderLayout.WEST;
+import java.awt.Component;
+import static java.awt.Component.LEFT_ALIGNMENT;
 import java.awt.GridBagConstraints;
-
-import javax.swing.Box;
+import static java.awt.GridBagConstraints.HORIZONTAL;
+import static java.awt.GridBagConstraints.NORTHWEST;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
+import static javax.swing.Box.createVerticalBox;
+import static javax.swing.JOptionPane.showMessageDialog;
+import javax.swing.JPanel;
 
 /*
  * ParametersPanel.java
@@ -21,9 +31,9 @@ public class ParametersPanel implements ParametersSource {
 
     public ParametersPanel(ProcessModel pProc) {
 
-        m_prmPanels = new java.util.Vector<javax.swing.JPanel>();
+        m_prmPanels = new ArrayList<>();
 
-        java.util.Vector<ParametersGroup> grps = pProc.getParameters();
+        List<ParametersGroup> grps = pProc.getParameters();
 
         ParameterViewFactory pfac = new ParameterViewFactory();
 
@@ -33,29 +43,30 @@ public class ParametersPanel implements ParametersSource {
             jPanel1.setBorder(new javax.swing.border.TitledBorder(grps.get(i).getGroupName()));
             jPanel1.setLayout(new java.awt.BorderLayout());
 
-            javax.swing.Box grpBox = javax.swing.Box.createVerticalBox();
-            grpBox.setAlignmentX(Box.LEFT_ALIGNMENT);
+            javax.swing.Box grpBox = createVerticalBox();
+            grpBox.setAlignmentX(LEFT_ALIGNMENT);
 
-            java.util.Vector<ProcessParameter> prmList = grps.get(i).getParameters();
+            List<ProcessParameter> prmList = grps.get(i).getParameters();
 
             ProcessParameter prm;
             for (int j = 0; j < prmList.size(); j++) {
                 prm = prmList.get(j);
 
-                ParameterView npv = null;
+                ParameterView npv;
 
                 npv = pfac.createParameter(prm);
 
-                npv.setAlignmentX(Box.LEFT_ALIGNMENT);
+                npv.setAlignmentX(LEFT_ALIGNMENT);
 
                 grpBox.add(npv);
             }
 
-            jPanel1.add(grpBox, java.awt.BorderLayout.WEST);
+            jPanel1.add(grpBox, WEST);
             m_prmPanels.add(jPanel1);
         }
     }
 
+    @Override
     public void loadFromFile(String path) {
         File myFile = new File(path);
 
@@ -63,20 +74,18 @@ public class ParametersPanel implements ParametersSource {
             Scanner scanner = new Scanner(myFile);
             Scanner scanner2;
 
-            java.util.Enumeration grps = m_prmPanels.elements();
             String line;
-            while (grps.hasMoreElements()) {
-                javax.swing.JPanel gPanel = (javax.swing.JPanel) grps.nextElement();
+            for (JPanel gPanel : m_prmPanels) {
                 String grpTitle = ((javax.swing.border.TitledBorder) gPanel.getBorder()).getTitle();
                 String aLine = scanner.nextLine();
-                scanner2 = new Scanner(aLine); // Read group title
+                //         scanner2 = new Scanner(aLine); // Read group title
 
                 java.awt.Component[] grpsB = gPanel.getComponents();
-                for (int i = 0; i < grpsB.length; i++) {
-                    javax.swing.Box gbox = (javax.swing.Box) grpsB[i];
+                for (Component grpsB1 : grpsB) {
+                    javax.swing.Box gbox = (javax.swing.Box) grpsB1;
                     java.awt.Component[] prms = gbox.getComponents();
-                    for (int j = 0; j < prms.length; j++) {
-                        ParameterView pv = (ParameterView) prms[j];
+                    for (Component prm : prms) {
+                        ParameterView pv = (ParameterView) prm;
                         aLine = scanner.nextLine();
                         scanner2 = new Scanner(aLine);
                         scanner2.useDelimiter("=");
@@ -85,7 +94,6 @@ public class ParametersPanel implements ParametersSource {
                         if (scanner2.hasNext()) {
                             value = scanner2.next();
                         }
-
                         pv.setValue(value);
                     }
                 }
@@ -93,27 +101,26 @@ public class ParametersPanel implements ParametersSource {
 
             }
         } catch (FileNotFoundException e) {
-            javax.swing.JOptionPane.showMessageDialog(null, e.toString());
+            showMessageDialog(null, e.toString());
         }
 
     }
 
+    @Override
     public void saveToFile(String path) {
         File of = new File(path);
         FileWriter outF;
         try {
             outF = new FileWriter(of);
-            java.util.Enumeration grps = m_prmPanels.elements();
-            while (grps.hasMoreElements()) {
-                javax.swing.JPanel gPanel = (javax.swing.JPanel) grps.nextElement();
+            for (JPanel gPanel : m_prmPanels) {
                 String grpTitle = ((javax.swing.border.TitledBorder) gPanel.getBorder()).getTitle();
                 outF.write("&" + grpTitle + "\n");
                 java.awt.Component[] grpsB = gPanel.getComponents();
-                for (int i = 0; i < grpsB.length; i++) {
-                    javax.swing.Box gbox = (javax.swing.Box) grpsB[i];
+                for (Component grpsB1 : grpsB) {
+                    javax.swing.Box gbox = (javax.swing.Box) grpsB1;
                     java.awt.Component[] prms = gbox.getComponents();
-                    for (int j = 0; j < prms.length; j++) {
-                        ParameterView pv = (ParameterView) prms[j];
+                    for (Component prm : prms) {
+                        ParameterView pv = (ParameterView) prm;
                         outF.write(pv.getKeyValuePair());
                         outF.write("\n");
                     }
@@ -125,10 +132,11 @@ public class ParametersPanel implements ParametersSource {
         }
     }
 
+    @Override
     public void showParameters(javax.swing.JPanel hp) {
         GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.anchor = GridBagConstraints.NORTHWEST;
+        c.fill = HORIZONTAL;
+        c.anchor = NORTHWEST;
         c.weightx = 1;
         c.weighty = 0;
         for (int i = 0; i < m_prmPanels.size(); i++) {
@@ -141,24 +149,20 @@ public class ParametersPanel implements ParametersSource {
         }
     }
 
-    public java.util.Vector<String> getParametersInline() {
-        java.util.Vector<String> ret = new java.util.Vector<String>();
-
-        java.util.Enumeration grps = m_prmPanels.elements();
-        while (grps.hasMoreElements()) {
-            javax.swing.JPanel gPanel = (javax.swing.JPanel) grps.nextElement();
+    @Override
+    public List<String> getParametersInline() {
+        List<String> ret = new ArrayList<>();
+        for (JPanel gPanel : m_prmPanels) {
             String grpTitle = ((javax.swing.border.TitledBorder) gPanel.getBorder()).getTitle();
             java.awt.Component[] grpsB = gPanel.getComponents();
-            for (int i = 0; i < grpsB.length; i++) {
-                javax.swing.Box gbox = (javax.swing.Box) grpsB[i];
+            for (Component grpsB1 : grpsB) {
+                javax.swing.Box gbox = (javax.swing.Box) grpsB1;
                 java.awt.Component[] prms = gbox.getComponents();
-                for (int j = 0; j < prms.length; j++) {
-                    ParameterView pv = (ParameterView) prms[j];
+                for (Component prm : prms) {
+                    ParameterView pv = (ParameterView) prm;
                     if (pv.getValue().length() > 0) {
                         String[] sv = pv.getCommandLine().split(" ");
-                        for (int k = 0; k < sv.length; k++) {
-                            ret.add(sv[k]);
-                        }
+                        ret.addAll(Arrays.asList(sv));
                     }
                 }
             }
@@ -167,14 +171,14 @@ public class ParametersPanel implements ParametersSource {
         return ret;
     }
 
+    @Override
     public ParametersSource clone(ProcessModel model) {
         ParametersPanel pp = new ParametersPanel(model);
-        saveToFile(botoseis.mainGui.utils.Utils.getBotoseisROOT()+"/."+model.getID());
-        pp.loadFromFile(botoseis.mainGui.utils.Utils.getBotoseisROOT()+"/."+model.getID());
+        saveToFile(getBotoseisROOT() + "/." + model.getID());
+        pp.loadFromFile(getBotoseisROOT() + "/." + model.getID());
         return pp;
     }
 
-
     // Variables declaration
-    java.util.Vector<javax.swing.JPanel> m_prmPanels;
+    List<javax.swing.JPanel> m_prmPanels;
 }

@@ -8,19 +8,20 @@ package botoseis.mainGui.prmview;
  * To change this template, choose Tools | Template Manager
  * and open the template in the editor.
  */
-
 public class ProcessParameter {
-    
-    /** Creates a new instance of ProcessParameter */
-    public ProcessParameter() {        
+
+    /**
+     * Creates a new instance of ProcessParameter
+     */
+    public ProcessParameter() {
     }
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         return name;
     }
 
-    public String name;    
+    public String name;
     public String type;
     public String optionValues;
     public String keyvaluePair;
@@ -28,7 +29,7 @@ public class ProcessParameter {
     public String brief;
     public String value;
     public String defaultValue;
-    
+
     // Constants
     public static final String TEXT = "Text";
     public static final String NUMERIC = "Numeric";
@@ -39,5 +40,5 @@ public class ProcessParameter {
     public static final String OPTIONS_SELECTION_TEXT = "OptionsSelectionText";
     public static final String KEYVALUEPAIR = "true";
     public static final String VALUE_ONLY = "false";
-    
+
 }

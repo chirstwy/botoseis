@@ -11,21 +11,26 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import java.io.IOException;
 
-
 import botoseis.mainGui.utils.DefaultNode;
-
+import static botoseis.mainGui.utils.DefaultNode.LINE_TYPE;
+import static java.lang.System.getProperty;
+import java.util.ArrayList;
+import java.util.List;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static org.w3c.dom.Node.COMMENT_NODE;
+import static org.w3c.dom.Node.ELEMENT_NODE;
+import static org.w3c.dom.Node.TEXT_NODE;
 
 /**
  *
  */
-
 public class UserProject {
 
     public UserProject(String home, String title) {
         m_prjHomeDir = home;
         m_title = title;
 
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String path = m_prjHomeDir + fsep + "GlobalLine";
         java.io.File f = new java.io.File(path);
         if (f.mkdir()) {
@@ -39,14 +44,14 @@ public class UserProject {
         return m_title;
     }
 
-    public String getprojHomeDir(){
+    public String getprojHomeDir() {
         return this.m_prjHomeDir;
     }
 
     public void open(String home) {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         m_prjHomeDir = home;
-        m_title = home.substring(home.lastIndexOf("/")+1, home.length());
+        m_title = home.substring(home.lastIndexOf('/') + 1, home.length());
         String xmlFile = m_prjHomeDir + fsep + "info.xml";
 
         DOMParser parser = new DOMParser();
@@ -63,17 +68,16 @@ public class UserProject {
             for (int i = 0; i < len; i++) {
                 node = nodes.item(i);
                 switch (node.getNodeType()) {
-                    case Node.COMMENT_NODE:
+                    case COMMENT_NODE:
                         break;
-                    case Node.ELEMENT_NODE:
+                    case ELEMENT_NODE:
                         readElementNode(node);
                         break;
                 }
             }
         } catch (SAXException se) {
-            se.printStackTrace();
         } catch (IOException ioe) {
-            javax.swing.JOptionPane.showMessageDialog(null, "Problem");
+            showMessageDialog(null, "Problem");
         }
 
     }
@@ -85,9 +89,9 @@ public class UserProject {
         for (int i = 0; i < len; i++) {
             node = nodes.item(i);
             switch (node.getNodeType()) {
-                case Node.TEXT_NODE:
+                case TEXT_NODE:
                     break;
-                case Node.ELEMENT_NODE:
+                case ELEMENT_NODE:
                     if (node.getNodeName().equalsIgnoreCase("title")) {
                         m_title = node.getChildNodes().item(0).getNodeValue();
                     }
@@ -98,7 +102,7 @@ public class UserProject {
                     if (node.getNodeName().equalsIgnoreCase("line")) {
                         ProcessingLine newLine = new ProcessingLine("", "");
                         String s = node.getChildNodes().item(0).getNodeValue();
-                        String fsep = System.getProperty("file.separator");
+                        String fsep = getProperty("file.separator");
                         newLine.open(m_prjHomeDir + fsep + s);
 
                         m_lines.add(newLine);
@@ -110,7 +114,7 @@ public class UserProject {
     }
 
     public void save() {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String xmlFile = m_prjHomeDir + fsep + "info.xml";
         File of = new File(xmlFile);
         FileWriter outF;
@@ -131,13 +135,12 @@ public class UserProject {
             outF.write("</BotoSeisProject>");
             outF.close();
         } catch (IOException ex) {
-            ex.printStackTrace();
-            javax.swing.JOptionPane.showMessageDialog(null, ex.toString());
+            showMessageDialog(null, ex.toString());
         }
     }
 
     public void reloadLines() {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String xmlFile = m_prjHomeDir + fsep + "info.xml";
         File of = new File(xmlFile);
         FileWriter outF;
@@ -159,16 +162,16 @@ public class UserProject {
             outF.write("</BotoSeisProject>");
             outF.close();
         } catch (IOException ex) {
-            javax.swing.JOptionPane.showMessageDialog(null, ex.toString());
+            showMessageDialog(null, ex.toString());
         }
     }
 
-    public void reloadFlows(String path){
-         for (int i = 0; i < m_lines.size(); i++) {
-             if(m_lines.get(i).getHomedir().equals(path)){
-                 m_lines.get(i).save();
-             }
-         }
+    public void reloadFlows(String path) {
+        for (int i = 0; i < m_lines.size(); i++) {
+            if (m_lines.get(i).getHomedir().equals(path)) {
+                m_lines.get(i).save();
+            }
+        }
     }
 
     public void close() {
@@ -186,7 +189,7 @@ public class UserProject {
         }
 
         if (!titleDuplicated) {
-            String fsep = System.getProperty("file.separator");
+            String fsep = getProperty("file.separator");
             String path = m_prjHomeDir + fsep + pTitle;
             java.io.File f = new java.io.File(path);
             if (f.mkdir()) {
@@ -209,13 +212,7 @@ public class UserProject {
         return m_selectedLine;
     }
 
-   
-
-    
-    
-
     public void removeLine(String pTitle) {
-
 
         for (int i = 0; i < m_lines.size(); i++) {
             if (m_lines.get(i).getTitle().equalsIgnoreCase(pTitle)) {
@@ -223,7 +220,7 @@ public class UserProject {
             }
         }
 
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String path = m_prjHomeDir + fsep + pTitle;
         deleteDir(new File(path));
     }
@@ -231,8 +228,8 @@ public class UserProject {
     public static boolean deleteDir(File dir) {
         if (dir.isDirectory()) {
             String[] children = dir.list();
-            for (int i = 0; i < children.length; i++) {
-                boolean success = deleteDir(new File(dir, children[i]));
+            for (String children1 : children) {
+                boolean success = deleteDir(new File(dir, children1));
                 if (!success) {
                     return false;
                 }
@@ -245,27 +242,23 @@ public class UserProject {
         return m_selectedLine.addWorkflow(pTitle);
     }
 
-   
     public botoseis.mainGui.workflows.WorkflowModel selectWorkflow(String pName) {
-        botoseis.mainGui.workflows.WorkflowModel ret = null;
-
+        final botoseis.mainGui.workflows.WorkflowModel ret;
         if (m_selectedLine != null) {
             ret = m_selectedLine.selectWorkflow(pName);
         } else {
             ret = null;
         }
-
         return ret;
     }
 
     public void fillLinesList(DefaultNode root) {
-        ProcessingLine line = null;
         for (int i = 0; i < m_lines.size(); i++) {
-            line = m_lines.get(i);
+            ProcessingLine line = m_lines.get(i);
             if (line.getTitle().equalsIgnoreCase("GlobalLine")) {
                 line.fillWorkflowsList(root);
             } else {
-                DefaultNode node = new DefaultNode(line, DefaultNode.LINE_TYPE);
+                DefaultNode node = new DefaultNode(line, LINE_TYPE);
                 root.add(node);
                 line.fillWorkflowsList(node);
             }
@@ -277,14 +270,13 @@ public class UserProject {
         return m_title;
     }
 
-
     //
     private String m_prjHomeDir;
     private String m_title;
     public static final int ErrorIO = 1;
     public static final int ErrorDuplicatedTitle = 2;
     // Lines
-    java.util.Vector<ProcessingLine> m_lines = new java.util.Vector<ProcessingLine>();
+    List<ProcessingLine> m_lines = new ArrayList<>();
     ProcessingLine m_globalLine;
     ProcessingLine m_selectedLine;
 }

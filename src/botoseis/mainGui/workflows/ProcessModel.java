@@ -1,6 +1,8 @@
 package botoseis.mainGui.workflows;
 
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
+
 /*
  * ProcessModel.java
  *
@@ -14,7 +16,7 @@ public class ProcessModel {
 
     /** Creates a new instance of ProcessModel */
     public ProcessModel() {
-        m_parameters = new Vector<ParametersGroup>();
+        m_parameters = new ArrayList<>();
     }
 
     public void setTitle(String pTitle) {
@@ -61,14 +63,14 @@ public class ProcessModel {
         m_parameters.add(pGroup);
     }
 
-    public void setParameters(Vector<ParametersGroup> p) {
+    public void setParameters(List<ParametersGroup> p) {
         m_parameters.clear();
         for (int i = 0; i < p.size(); i++) {
             m_parameters.add(p.get(i));
         }
     }
 
-    public Vector<ParametersGroup> getParameters() {
+    public List<ParametersGroup> getParameters() {
         return m_parameters;
     }
 
@@ -117,5 +119,5 @@ public class ProcessModel {
     private boolean m_hasInput;
     private boolean m_hasOutput;
     private String m_callConvention;    
-    private Vector<ParametersGroup> m_parameters;
+    private List<ParametersGroup> m_parameters;
 }

@@ -8,14 +8,17 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JTextArea;
-import botoseis.mainGui.workflows.ProcessModel;
+import static botoseis.mainGui.workflows.WorkflowJob.COMPLETED;
+import static botoseis.mainGui.workflows.WorkflowJob.ERROR;
+import static botoseis.mainGui.workflows.WorkflowJob.RUNNING;
+import static botoseis.mainGui.workflows.WorkflowJob.STARTING;
+import static botoseis.mainGui.workflows.WorkflowJob.STOPPED;
 import java.io.IOException;
-import javax.swing.JOptionPane;
+import static java.lang.String.valueOf;
+import static java.lang.System.currentTimeMillis;
+import static java.lang.System.getProperty;
+import java.util.List;
 
 /**
  *
@@ -25,7 +28,7 @@ public class WorkflowProcess {
 
     public WorkflowProcess(ProcessModel pModel, botoseis.mainGui.prmview.ParametersSource prmSource) {
         m_prmSource = prmSource;
-        m_execStatus = WorkflowJob.STARTING;
+        m_execStatus = STARTING;
         m_model = pModel;
         lengthProcessed = 0L;
 
@@ -38,16 +41,15 @@ public class WorkflowProcess {
         m_timeStop = 0;
 
         try {
-            java.util.Vector<String> cmd = m_prmSource.getParametersInline();
+            List<String> cmd = m_prmSource.getParametersInline();
             cmd.add(0, m_model.getExecutablePath());
             pb = new ProcessBuilder(cmd);
             pb.directory(new java.io.File(homeDir));
             m_proc = pb.start();
         } catch (Exception e) {
-            e.printStackTrace();
         }
 
-        status = WorkflowJob.RUNNING;
+        status = RUNNING;
         flowLog.append("\nProcess started: " + this.getTitle() + " \n");
         Thread log = new Thread() {
 
@@ -55,15 +57,14 @@ public class WorkflowProcess {
             public void run() {
 
                 try {
-                    int b = 0;
-                    b = m_proc.getErrorStream().read();
+                    int b = m_proc.getErrorStream().read();
                     do {
-                        flowLog.append(String.valueOf((char) b));
+                        flowLog.append(valueOf((char) b));
 
                         if (flowLog.checkError()) {
-                            status = WorkflowJob.ERROR;
+                            status = ERROR;
                         }
-                        if (status.equals(WorkflowJob.STOPPED)) {
+                        if (status.equals(STOPPED)) {
                             break;
                         }
 
@@ -73,8 +74,8 @@ public class WorkflowProcess {
 //                    if (last) {
 //                        m_timeStop = System.currentTimeMillis();
 //                    }
-                    if (!status.equals(WorkflowJob.STOPPED)) {
-                        status = WorkflowJob.COMPLETED;
+                    if (!status.equals(STOPPED)) {
+                        status = COMPLETED;
                     }
                 } catch (Exception e) {
 //                    e.printStackTrace();
@@ -83,42 +84,41 @@ public class WorkflowProcess {
         };
         log.start();
 
-        Thread output = new Thread() {
+        Thread output;
+        output = new Thread() {
 
             @Override
             public void run() {
 
                 try {
                     if (input != null) {
-                        BufferedOutputStream buffout = new BufferedOutputStream(getOutStream());
-                        BufferedInputStream buffInp = new BufferedInputStream(input);
-                        int b = 0;
-                        byte[] len = new byte[1024];
-                        do {
-                            if (status.equals(WorkflowJob.STOPPED)) {
-                                break;
-                            }
-                            b = buffInp.read(len);
-                            if (b >= 0) {
-                                buffout.write(len, 0, b);
-                                lengthProcessed += len.length;
-                            }
-                        } while (b >= 0);
-
-                        buffInp.close();
-                        buffout.close();
+                        try (BufferedOutputStream buffout = new BufferedOutputStream(getOutStream());
+                                BufferedInputStream buffInp = new BufferedInputStream(input)) {
+                            int b = 0;
+                            byte[] len = new byte[1024];
+                            do {
+                                if (status.equals(STOPPED)) {
+                                    break;
+                                }
+                                b = buffInp.read(len);
+                                if (b >= 0) {
+                                    buffout.write(len, 0, b);
+                                    lengthProcessed += len.length;
+                                }
+                            } while (b >= 0);
+                        }
                     }
 
                     if (last) {
                         BufferedInputStream buffInp = new BufferedInputStream(getInputStream());
-                        int b = 0;
+                        int b;
                         while ((b = buffInp.read()) >= 0) {
-                            m_console.append(String.valueOf((char) b));
+                            m_console.append(valueOf((char) b));
                         }
                         m_console.append("---------------------------- END ---------------------------------");
                         m_console.append("\n\n");
-                         m_timeStop = System.currentTimeMillis();
-                        status = WorkflowJob.COMPLETED;
+                        m_timeStop = currentTimeMillis();
+                        status = COMPLETED;
                         getInputStream().close();
                         getErrorStream().close();
                         getOutStream().close();
@@ -127,27 +127,25 @@ public class WorkflowProcess {
 
                 } catch (Exception e) {
 //                    e.printStackTrace();
-                    try{
+                    try {
                         getInputStream().close();
                         getErrorStream().close();
                         getOutStream().close();
                         input.close();
-                        m_timeStop = System.currentTimeMillis();
+                        m_timeStop = currentTimeMillis();
                         m_console.append("---------------------------- END ---------------------------------");
                         m_console.append("\n\n");
                     } catch (IOException ioe) {
-                        ioe.printStackTrace();
                     }
-                    status = WorkflowJob.STOPPED;
+                    status = STOPPED;
                 }
             }
         };
         output.start();
 
-
-
     }
 
+    @Override
     public WorkflowProcess clone() {
         WorkflowProcess wp = new WorkflowProcess(m_model, m_prmSource.clone(m_model));
         wp.setReviewed(reviewed);
@@ -192,10 +190,9 @@ public class WorkflowProcess {
             m_proc.getErrorStream().close();
             m_proc.getInputStream().close();
             m_proc.getOutputStream().close();
-            status = WorkflowJob.STOPPED;
+            status = STOPPED;
             m_proc.destroy();
         } catch (IOException ioe) {
-            ioe.printStackTrace();
         }
     }
 
@@ -206,8 +203,6 @@ public class WorkflowProcess {
     public void setReviewed(boolean reviewed) {
         this.reviewed = reviewed;
     }
-    
-   
 
     public String getStrReviewd() {
         if (this.isReviewed()) {
@@ -218,11 +213,7 @@ public class WorkflowProcess {
     }
 
     public boolean getBoReviewd(String str) {
-        if (str.equalsIgnoreCase("true")) {
-            return true;
-        } else {
-            return false;
-        }
+        return str.equalsIgnoreCase("true");
     }
 
     public OutputStream getOutStream() {
@@ -263,23 +254,23 @@ public class WorkflowProcess {
 
     public void open(String homeDir) {
         String flowID = m_flowID.replace("/", "-");
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String nlFile = homeDir + fsep + flowID + ".nl";
         m_prmSource.loadFromFile(nlFile);
     }
 
     public void save(String homeDir) {
         String flowID = m_flowID.replace("/", "-");
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String nlFile = homeDir + fsep + flowID + ".nl";
         m_prmSource.saveToFile(nlFile);
     }
     private ProcessBuilder pb;
     private Process m_proc = null;
-    private String m_execStatus;
+    private final String m_execStatus;
     private String m_flowID;
-    private ProcessModel m_model;
-    private botoseis.mainGui.prmview.ParametersSource m_prmSource;
+    private final ProcessModel m_model;
+    private final botoseis.mainGui.prmview.ParametersSource m_prmSource;
     private String m_lastCmdLine;
     //-------------------------------
     private boolean reviewed;

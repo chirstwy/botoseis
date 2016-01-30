@@ -5,8 +5,10 @@
 package botoseis.mainGui.workflows;
 
 import java.util.Date;
-import botoseis.mainGui.workflows.WorkflowModel;
-
+import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -27,60 +29,56 @@ public class WorkflowJob {
     public void start() {
         m_logFile = new java.io.File(m_homeDir + "/log.txt");
         String cmd = "";
-         for (int i = 0; i < m_procList.size(); i++) {
+        for (int i = 0; i < m_procList.size(); i++) {
             WorkflowProcess wp = m_procList.get(i);
-            cmd += wp.getModel().getExecutablePath()+" ";
-            java.util.Vector<String> pl = wp.getParametersSource().getParametersInline();
+            cmd += wp.getModel().getExecutablePath() + " ";
+            List<String> pl = wp.getParametersSource().getParametersInline();
             for (int j = 0; j < pl.size(); j++) {
-                cmd += pl.get(j)+" ";
+                cmd += pl.get(j) + " ";
             }
-            if(i != m_procList.size()-1)
-                cmd+= " | ";      
+            if (i != m_procList.size() - 1) {
+                cmd += " | ";
+            }
         }
-        Date current = new Date(System.currentTimeMillis());
+        Date current = new Date(currentTimeMillis());
         flowLog.append(formatCenter("BotoSeis v1.0 (c) 2008\n"));
         flowLog.append(formatCenter("Developed at Federal University of Para\n"));
         flowLog.append(formatCenter("Geophysics Department\n\n"));
         flowLog.append(formatLeft("Executing workflow: " + m_workflow.getTitle(), 0));
-        flowLog.append("Start time: "+ current.toLocaleString());
+        flowLog.append("Start time: " + current.toLocaleString());
         flowLog.append(formatLeft("Command executed: " + cmd, 1));
 
-        m_console.append("Executing workflow: " + m_workflow.getTitle()+"\n");
+        m_console.append("Executing workflow: " + m_workflow.getTitle() + "\n");
         m_console.append("Workflow out:\n");
 
-        m_timeStart = System.currentTimeMillis();
-        new Thread(new Runnable() {
+        m_timeStart = currentTimeMillis();
+        new Thread(() -> {
+            for (int i = 0; i < m_procList.size(); i++) {
+                WorkflowProcess wp = m_procList.get(i);
+                wp.setFlowLog(flowLog);
 
-            public void run() {
-                for (int i = 0; i < m_procList.size(); i++){
-                    WorkflowProcess wp = m_procList.get(i);
-                    wp.setFlowLog(flowLog);
-                    
-                    if (i != 0) {
-                        WorkflowProcess w = m_procList.get( i -1);
-                        wp.setInputStream(w.getInputStream());
-                    }
-                    if (i == m_procList.size() - 1) {
-                        wp.setLast(true);
-                        wp.setConsole(m_console);
-                    }
-                    wp.start(m_homeDir);
+                if (i != 0) {
+                    WorkflowProcess w = m_procList.get(i - 1);
+                    wp.setInputStream(w.getInputStream());
                 }
+                if (i == m_procList.size() - 1) {
+                    wp.setLast(true);
+                    wp.setConsole(m_console);
+                }
+                wp.start(m_homeDir);
             }
         }).start();
     }
 
-
-    public void setStatus(String status){
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public WorkflowLogDlg getFlowLog(){
-        return  flowLog;
+    public WorkflowLogDlg getFlowLog() {
+        return flowLog;
     }
 
-
-      String formatCenter(String s) {
+    String formatCenter(String s) {
         int pad = COLS / 2 - s.length() / 2;
         String s2 = "";
         for (int i = 0; i < pad; i++) {
@@ -110,38 +108,37 @@ public class WorkflowJob {
         return s2;
     }
 
-
     public Date getTimeStart() {
         return new Date(m_timeStart);
     }
 
     public Date getTimeStop() {
-        if (m_procList.lastElement().getTimeStop() == 0) {
+        if (m_procList.get(m_procList.size()-1).getTimeStop() == 0) {
             return null;
         } else {
-            return new Date(m_procList.lastElement().getTimeStop());
+            return new Date(m_procList.get(m_procList.size()-1).getTimeStop());
         }
     }
 
     public String getDuration() {
         float value;
-        if (m_procList.lastElement().getTimeStop() != 0) {
-            long time = m_procList.lastElement().getTimeStop() - m_timeStart;
-            if(time < 60000){
+        if (m_procList.get(m_procList.size()-1).getTimeStop() != 0) {
+            long time = m_procList.get(m_procList.size()-1).getTimeStop() - m_timeStart;
+            if (time < 60000) {
                 value = time / 1000;
-            return String.format("%.2f sec",value );
-            }else{
+                return format("%.2f sec", value);
+            } else {
                 value = time / 1000;
-                value = value/60;
-                return String.format("%.2f min", value);
+                value = value / 60;
+                return format("%.2f min", value);
             }
         }
         return "";
     }
 
-    public String getProcessed(){
+    public String getProcessed() {
 
-        if(m_procList == null){
+        if (m_procList == null) {
             return "unkonwn";
         }
         double value = 0;
@@ -149,33 +146,32 @@ public class WorkflowJob {
             WorkflowProcess wp = m_procList.get(i);
             value += wp.getLentghProcessed();
         }
-        value = value / (m_procList.size()-1);
-        return String.format("%.2f", (value/1048576));
+        value = value / (m_procList.size() - 1);
+        return format("%.2f", (value / 1048576));
     }
 
-    public void stop(){
-        m_procList.lastElement().setTimeStop(System.currentTimeMillis());
-        status = WorkflowJob.STOPPED;
+    public void stop() {
+        m_procList.get(m_procList.size()-1).setTimeStop(currentTimeMillis());
+        status = STOPPED;
         for (int i = 0; i < m_procList.size(); i++) {
             WorkflowProcess wp = m_procList.get(i);
             wp.stop();
         }
     }
 
-
     public String getTitle() {
         return m_workflow.getTitle();
     }
 
-    public String getHomeDir(){
+    public String getHomeDir() {
         return m_homeDir;
     }
 
-    public String getStatus(){
-         if(flowLog.checkError()){
-            return WorkflowJob.ERROR;
+    public String getStatus() {
+        if (flowLog.checkError()) {
+            return ERROR;
         }
-        return m_procList.lastElement().getStatus();
+        return m_procList.get(m_procList.size()-1).getStatus();
     }
 
     String m_homeDir;
@@ -184,7 +180,7 @@ public class WorkflowJob {
     private javax.swing.Timer m_timer;
     private Long m_timeStart;
     private java.io.File m_logFile;
-    java.util.Vector<botoseis.mainGui.workflows.WorkflowProcess> m_procList = new java.util.Vector<botoseis.mainGui.workflows.WorkflowProcess>();
+    List<WorkflowProcess> m_procList = new ArrayList<>();
     javax.swing.JTextArea m_console;
     // Constants
     private int COLS = 80;
@@ -198,5 +194,3 @@ public class WorkflowJob {
     private WorkflowLogDlg flowLog;
 
 }
-
-

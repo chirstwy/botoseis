@@ -12,19 +12,54 @@ package botoseis.ivelan.main;
 
 import gfx.GfxPanelColorbar;
 import gfx.AxisPanel;
+import static gfx.SVAxis.AXIS_LEFT;
+import static gfx.SVAxis.AXIS_TOP;
+import static gfx.SVAxis.HORIZONTAL;
+import static gfx.SVAxis.VERTICAL;
+import static gfx.SVColorScale.LSBFirst;
 import gfx.SVPoint2D;
+import static gfx.SVXYPlot.SOLID;
+import static java.awt.Color.black;
+import static java.awt.Color.blue;
+import static java.awt.Color.red;
+import static java.awt.EventQueue.invokeLater;
+import static java.awt.event.MouseEvent.BUTTON1;
+import static java.awt.event.MouseEvent.BUTTON3;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Locale;
-import java.util.Vector;
-import javax.swing.JOptionPane;
+import static java.lang.Float.parseFloat;
+import static java.lang.Integer.parseInt;
+import static java.lang.Math.abs;
+import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
+import static java.lang.Runtime.getRuntime;
+import static java.lang.String.format;
+import static java.lang.System.exit;
+import static java.lang.System.getenv;
+import static java.lang.System.out;
+import java.util.ArrayList;
+import static java.util.Arrays.sort;
+import java.util.List;
+import static java.util.Locale.ENGLISH;
+import static javax.swing.JFileChooser.APPROVE_OPTION;
+import static javax.swing.JOptionPane.CANCEL_OPTION;
+import static javax.swing.JOptionPane.NO_OPTION;
+import static javax.swing.JOptionPane.OK_CANCEL_OPTION;
+import static javax.swing.JOptionPane.OK_OPTION;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+import static javax.swing.JOptionPane.YES_OPTION;
+import static javax.swing.JOptionPane.showConfirmDialog;
+import static javax.swing.JOptionPane.showMessageDialog;
+//import java.util.Vector;
 
 /**
  *
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    /** Creates new form MainWindow */
+    /**
+     * Creates new form MainWindow
+     */
     public MainWindow() {
         initComponents();
 
@@ -32,31 +67,31 @@ public class MainWindow extends javax.swing.JFrame {
         panelSemblance.add(gfxPanelSemblance);
         panelCVS.add(gfxPanelCVS);
 
-        nmoCurve.setLineStyle(gfx.SVXYPlot.SOLID);
+        nmoCurve.setLineStyle(SOLID);
         nmoCurve.setPointsVisible(false);
-        nmoCurve.setDrawColor(java.awt.Color.red);
+        nmoCurve.setDrawColor(red);
         nmoCurve.setDrawSize(2);
         gfxPanelCDP.addXYPlot(nmoCurve);
 
-        picksCurve.setLineStyle(gfx.SVXYPlot.SOLID);
+        picksCurve.setLineStyle(SOLID);
         picksCurve.setPointsVisible(true);
-        picksCurve.setDrawColor(java.awt.Color.black);
+        picksCurve.setDrawColor(black);
         picksCurve.setDrawSize(2);
         gfxPanelSemblance.addXYPlot(picksCurve);
         gfxPanelCVS.addXYPlot(picksCurve);
 
-        intervalCurve.setLineStyle(gfx.SVXYPlot.SOLID);
+        intervalCurve.setLineStyle(SOLID);
         intervalCurve.setPointsVisible(false);
-        intervalCurve.setDrawColor(java.awt.Color.blue);
+        intervalCurve.setDrawColor(blue);
         intervalCurve.setVisible(false);
         intervalCurve.setDrawSize(2);
-        
+
         gfxPanelSemblance.addXYPlot(intervalCurve);
 
-        m_timeAxis = new gfx.SVAxis(gfx.SVAxis.VERTICAL, gfx.SVAxis.AXIS_LEFT, "Time (s)");
-        m_cdpOffsetAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Offset (km)");
-        m_velocityAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Velocity (m/s)");
-        m_cvsVelocityAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Velocity (m/s)");
+        m_timeAxis = new gfx.SVAxis(VERTICAL, AXIS_LEFT, "Time (s)");
+        m_cdpOffsetAxis = new gfx.SVAxis(HORIZONTAL, AXIS_TOP, "Offset (km)");
+        m_velocityAxis = new gfx.SVAxis(HORIZONTAL, AXIS_TOP, "Velocity (m/s)");
+        m_cvsVelocityAxis = new gfx.SVAxis(HORIZONTAL, AXIS_TOP, "Velocity (m/s)");
 
         m_timeAxis.setLimits(m_tmin, m_tmax);
 
@@ -94,14 +129,13 @@ public class MainWindow extends javax.swing.JFrame {
 
                     int EPS = 20; // 10 pixels
 
-                    gfx.SVPoint2D pickP = null;
                     int removedIndex = -1;
                     switch (evt.getButton()) {
-                        case java.awt.event.MouseEvent.BUTTON1:
+                        case BUTTON1:
                             // Remove pick if user clicked over a previous pick.
                             for (int i = 0; i < m_currentCDPVelocityPicks.size(); i++) {
-                                pickP = m_currentCDPVelocityPicks.get(i);
-                                if ((Math.abs(pickP.ix - vx) <= EPS) && (Math.abs(pickP.iy - vy) <= EPS)) {
+                                SVPoint2D pickP = m_currentCDPVelocityPicks.get(i);
+                                if ((abs(pickP.ix - vx) <= EPS) && (abs(pickP.iy - vy) <= EPS)) {
                                     removedIndex = i;
                                     break;
                                 }
@@ -117,7 +151,7 @@ public class MainWindow extends javax.swing.JFrame {
                             }
 
                             break;
-                        case java.awt.event.MouseEvent.BUTTON3:
+                        case BUTTON3:
                             break;
                     }
                 }
@@ -178,14 +212,14 @@ public class MainWindow extends javax.swing.JFrame {
 
                     int EPS = 20; // 10 pixels
 
-                    gfx.SVPoint2D pickP = null;
+                    gfx.SVPoint2D pickP;
                     int removedIndex = -1;
                     switch (evt.getButton()) {
-                        case java.awt.event.MouseEvent.BUTTON1:
+                        case BUTTON1:
                             // Remove pick if user clicked over a previous pick.
                             for (int i = 0; i < m_currentCDPVelocityPicks.size(); i++) {
                                 pickP = m_currentCDPVelocityPicks.get(i);
-                                if ((Math.abs(pickP.ix - vx) <= EPS) && (Math.abs(pickP.iy - vy) <= EPS)) {
+                                if ((abs(pickP.ix - vx) <= EPS) && (abs(pickP.iy - vy) <= EPS)) {
                                     removedIndex = i;
                                     break;
                                 }
@@ -200,7 +234,7 @@ public class MainWindow extends javax.swing.JFrame {
                             }
 
                             break;
-                        case java.awt.event.MouseEvent.BUTTON3:
+                        case BUTTON3:
                             break;
                     }
                 }
@@ -259,10 +293,10 @@ public class MainWindow extends javax.swing.JFrame {
 
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -662,7 +696,6 @@ public class MainWindow extends javax.swing.JFrame {
         //if (m_isModified) {
         //    ret = javax.swing.JOptionPane.showConfirmDialog(this, "Actual work is modified. Save it?");
         //}
-
         //switch (ret) {
         //    case javax.swing.JOptionPane.YES_OPTION:
         //        save();
@@ -674,36 +707,37 @@ public class MainWindow extends javax.swing.JFrame {
         //    default:
         //}
 
-        System.exit(0);
+        exit(0);
 }//GEN-LAST:event_fileExitActionPerformed
 
     /**
-     * suIntVel
-     * Converts stack velocities to interval velocities.
+     * suIntVel Converts stack velocities to interval velocities.
      *
      * Code extracted and adapted from "suintvel" program.
      *
-     * Copyright (c) Colorado School of Mines, 2007.
-     * All rights reserved.  
-     * 
-     * Adapted from SU sources. 
-     * Williams Lima
+     * Copyright (c) Colorado School of Mines, 2007. All rights reserved.
+     *
+     * Adapted from SU sources. Williams Lima
      */
     private void suIntVel(int n, float[] vs, float[] t0, float[] h, float[] v) {
-        float t1, t2;		/* temporaries for one-way times	*/
-        float v1, v2;		/* temporaries for stacking v's		*/
-        float dt;		/* temporary for t0/2 difference	*/
-        float dvh;		/* temporary for v*h difference		*/
+        float t1, t2;
+        /* temporaries for one-way times	*/
+        float v1, v2;
+        /* temporaries for stacking v's		*/
+        float dt;
+        /* temporary for t0/2 difference	*/
+        float dvh;
+        /* temporary for v*h difference		*/
 
-        /* Check that vs's and t0's are positive */
-        /*for (int i = 0; i < n; i++) {
+ /* Check that vs's and t0's are positive */
+ /*for (int i = 0; i < n; i++) {
         if (vs[i] < 0.0)
         fprintf(stderr, "DrawingWindow::suIntVel: vs's must be positive: vs[%d] = %f", i, vs[i]);
         if (t0[i] < 0.0)
         fprintf(stderr, "DrawingWindow::suIntVel: t0's must be positive: t0[%d] = %f", i, t0[i]);
         }*/
 
-        /* Compute h(i), v(i) */
+ /* Compute h(i), v(i) */
         h[0] = 0.5f * vs[0] * t0[0];
         v[0] = vs[0];
         for (int i = 1; i < n; i++) {
@@ -713,8 +747,8 @@ public class MainWindow extends javax.swing.JFrame {
             v1 = vs[i - 1];
             dt = t2 - t1;
             dvh = v2 * v2 * t2 - v1 * v1 * t1;
-            h[i] = (float) Math.sqrt(dvh * dt);
-            v[i] = (float) Math.sqrt(dvh / dt);
+            h[i] = (float) sqrt(dvh * dt);
+            v[i] = (float) sqrt(dvh / dt);
         }
     }
 
@@ -727,7 +761,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         SVPoint2DComparator ac = new SVPoint2DComparator();
 
-        java.util.Arrays.sort(pa, ac);
+        sort(pa, ac);
 
         float[] h = new float[nv];
         float[] v = new float[nv];
@@ -756,7 +790,7 @@ public class MainWindow extends javax.swing.JFrame {
             if (i == 0) {
                 ny[t] = ymin;
             } else {
-                ny[t] = y[i-1];
+                ny[t] = y[i - 1];
             }
 
             nx[t + 1] = v[i];
@@ -765,7 +799,7 @@ public class MainWindow extends javax.swing.JFrame {
             t += 2;
         }
 
-        nx[t] = nx[t-1];
+        nx[t] = nx[t - 1];
         ny[t] = ymax;
 
         intervalCurve.update(nx, ny);
@@ -773,7 +807,7 @@ public class MainWindow extends javax.swing.JFrame {
     }
 
     private void updateNMOCurve(float v, float t, float anis1, float anis2) {
-        int np = nmoCurve.getNumberOfPoint();        
+        int np = nmoCurve.getNumberOfPoint();
         float[] lm = gfxPanelCDP.getAxisLimits();
 
         float[] x = new float[np];
@@ -792,9 +826,9 @@ public class MainWindow extends javax.swing.JFrame {
             if (m_showingNMO) {
                 y[i] = t;
             } else {
-                y[i] = (float) (Math.sqrt(Math.pow(t, 2) +
-                        (1 / Math.pow(v, 2)) * Math.pow(x[i], 2) +
-                        (anis1 / (1 + anis2 * Math.pow(x[i], 2))) * Math.pow(x[i], 4)));
+                y[i] = (float) (sqrt(pow(t, 2)
+                        + (1 / pow(v, 2)) * pow(x[i], 2)
+                        + (anis1 / (1 + anis2 * pow(x[i], 2))) * pow(x[i], 4)));
             }
         }
 
@@ -809,9 +843,9 @@ public class MainWindow extends javax.swing.JFrame {
             float ymin = lm[0];
             float ymax = lm[1];
 
-            java.util.Vector<gfx.SVPoint2D> picksList = new java.util.Vector<gfx.SVPoint2D>();
+            List<gfx.SVPoint2D> picksList = new ArrayList<>();
 
-            gfx.SVPoint2D npick = null;
+            gfx.SVPoint2D npick;
             for (int i = 0; i < m_currentCDPVelocityPicks.size(); i++) {
                 npick = new gfx.SVPoint2D();
                 npick.fx = m_currentCDPVelocityPicks.get(i).fx;
@@ -833,7 +867,7 @@ public class MainWindow extends javax.swing.JFrame {
 
             SVPoint2DComparator ac = new SVPoint2DComparator();
 
-            java.util.Arrays.sort(pa, ac);
+            sort(pa, ac);
 
             int np = picksList.size();
 
@@ -884,47 +918,45 @@ private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event
 }//GEN-LAST:event_formWindowOpened
 
 private void aboutMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuActionPerformed
-/*
+    /*
     (new dialogs.AboutDlg(this, true)).setVisible(true);//GEN-LAST:event_aboutMenuActionPerformed
 */
-    (new botoseis.ivelan.dialogs.AboutDlg(this, true)).setVisible(true);
-}
+        (new botoseis.ivelan.dialogs.AboutDlg(this, true)).setVisible(true);
+    }
 
 private void fileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileNewActionPerformed
     int ret = javax.swing.JOptionPane.NO_OPTION;//GEN-LAST:event_fileNewActionPerformed
 
         if (m_isModified) {
-            ret = javax.swing.JOptionPane.showConfirmDialog(this, "Actual work is modified. Save it?");
+            ret = showConfirmDialog(this, "Actual work is modified. Save it?");
         }
 
         switch (ret) {
-            case javax.swing.JOptionPane.YES_OPTION:
+            case YES_OPTION:
                 save();
                 close();
                 break;
-            case javax.swing.JOptionPane.NO_OPTION:
+            case NO_OPTION:
                 close();
                 break;
             default:
         }
 
-        if (ret != javax.swing.JOptionPane.CANCEL_OPTION) {
-            ret = javax.swing.JOptionPane.showConfirmDialog(
-                    this, m_panelNewProject, "Setup", javax.swing.JOptionPane.OK_CANCEL_OPTION,
-                    javax.swing.JOptionPane.PLAIN_MESSAGE);
-            if (ret == javax.swing.JOptionPane.OK_OPTION) {
+        if (ret != CANCEL_OPTION) {
+            ret = showConfirmDialog(this, m_panelNewProject, "Setup", OK_CANCEL_OPTION, PLAIN_MESSAGE);
+            if (ret == OK_OPTION) {
                 m_inputFilePath = m_panelNewProject.inputFile.getText();
                 m_picksFilePath = m_panelNewProject.picksFile.getText();
-                m_cdpMin = Integer.parseInt(m_panelNewProject.cdpMin.getText());
-                m_cdpMax = Integer.parseInt(m_panelNewProject.cdpMax.getText());
-                m_cdpInterval = Integer.parseInt(m_panelNewProject.cdpInterval.getText());
-                m_tmin = Float.parseFloat(m_panelNewProject.timeMin.getText());
-                m_tmax = Float.parseFloat(m_panelNewProject.timeMax.getText());
-                m_vmin = Float.parseFloat(m_panelNewProject.vMin.getText());
-                m_vmax = Float.parseFloat(m_panelNewProject.vMax.getText());
-                m_dv = (m_vmax - m_vmin) / Integer.parseInt(m_panelNewProject.numV.getText());
-                m_cvsWindow = Integer.parseInt(m_panelNewProject.cvsWindow.getText());
-                m_cvsNumPanels = Integer.parseInt(m_panelNewProject.cvsNumPanels.getText());
+                m_cdpMin = parseInt(m_panelNewProject.cdpMin.getText());
+                m_cdpMax = parseInt(m_panelNewProject.cdpMax.getText());
+                m_cdpInterval = parseInt(m_panelNewProject.cdpInterval.getText());
+                m_tmin = parseFloat(m_panelNewProject.timeMin.getText());
+                m_tmax = parseFloat(m_panelNewProject.timeMax.getText());
+                m_vmin = parseFloat(m_panelNewProject.vMin.getText());
+                m_vmax = parseFloat(m_panelNewProject.vMax.getText());
+                m_dv = (m_vmax - m_vmin) / parseInt(m_panelNewProject.numV.getText());
+                m_cvsWindow = parseInt(m_panelNewProject.cvsWindow.getText());
+                m_cvsNumPanels = parseInt(m_panelNewProject.cvsNumPanels.getText());
                 m_cvsvmin = m_vmin;
                 m_cvsvmax = m_vmax;
 
@@ -932,7 +964,6 @@ private void fileNewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
                 setupProject();
                 workOnCDP(m_cdpMin);
-
 
             } else {
                 m_ready = false;
@@ -945,7 +976,7 @@ private void fileExportPicksActionPerformed(java.awt.event.ActionEvent evt) {//G
 
     int ret = jfc.showOpenDialog(this);
 
-    if (ret == javax.swing.JFileChooser.APPROVE_OPTION) {
+    if (ret == APPROVE_OPTION) {
         java.io.File outF = new java.io.File(jfc.getSelectedFile().toString());
         savePicksToFile(outF);
     }
@@ -954,23 +985,22 @@ private void fileExportPicksActionPerformed(java.awt.event.ActionEvent evt) {//G
 
 private void fileCloseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileCloseActionPerformed
 
-    int ret = javax.swing.JOptionPane.NO_OPTION;
+    int ret = NO_OPTION;
 
     if (m_isModified) {
-        ret = javax.swing.JOptionPane.showConfirmDialog(this, "Actual work is modified. Save it?");
+        ret = showConfirmDialog(this, "Actual work is modified. Save it?");
     }
 
     switch (ret) {
-        case javax.swing.JOptionPane.YES_OPTION:
+        case YES_OPTION:
             save();
             close();
             break;
-        case javax.swing.JOptionPane.NO_OPTION:
+        case NO_OPTION:
             close();
             break;
         default:
     }
-
 
     gfxPanelCDP.repaint();
     gfxPanelSemblance.repaint();
@@ -1001,7 +1031,7 @@ private void btnPrevActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         showSemblance(cdp);
         showCVS(cdp);
 
-        labelCDP.setText(String.format("CDP # %d", m_curCDP));
+        labelCDP.setText(format("CDP # %d", m_curCDP));
         int idx = (cdp - m_cdpMin) / m_cdpInterval;
 
         m_currentCDPVelocityPicks = m_velocityPicks.get(idx);
@@ -1018,29 +1048,29 @@ private void fileSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
 }//GEN-LAST:event_fileSaveActionPerformed
 
 private void fileOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fileOpenActionPerformed
-    int ret = javax.swing.JOptionPane.NO_OPTION;
+    int ret = NO_OPTION;
 
     if (m_isModified) {
-        ret = javax.swing.JOptionPane.showConfirmDialog(this, "Actual work is modified. Save it?");
+        ret = showConfirmDialog(this, "Actual work is modified. Save it?");
     }
 
     switch (ret) {
-        case javax.swing.JOptionPane.YES_OPTION:
+        case YES_OPTION:
             save();
             close();
             break;
-        case javax.swing.JOptionPane.NO_OPTION:
+        case NO_OPTION:
             close();
             break;
         default:
     }
 
-    if (ret != javax.swing.JOptionPane.CANCEL_OPTION) {
+    if (ret != CANCEL_OPTION) {
         javax.swing.JFileChooser jfc = new javax.swing.JFileChooser();
 
         ret = jfc.showOpenDialog(this);
 
-        if (ret == javax.swing.JFileChooser.APPROVE_OPTION) {
+        if (ret == APPROVE_OPTION) {
             m_projectFolder = jfc.getSelectedFile().getParentFile();
             m_projectFile = jfc.getSelectedFile();
             open();
@@ -1069,7 +1099,7 @@ private void menuShowIntervalVelActionPerformed(java.awt.event.ActionEvent evt) 
 }//GEN-LAST:event_menuShowIntervalVelActionPerformed
 
 private void optionsVelanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_optionsVelanActionPerformed
-    botoseis.ivelan.dialogs.VelanDlg dlg = new botoseis.ivelan.dialogs.VelanDlg(this, true,m_vmax,m_vmin,(int) ((m_vmax - m_vmin)/m_dv) );
+    botoseis.ivelan.dialogs.VelanDlg dlg = new botoseis.ivelan.dialogs.VelanDlg(this, true, m_vmax, m_vmin, (int) ((m_vmax - m_vmin) / m_dv));
 
     dlg.setVisible(true);
 
@@ -1095,15 +1125,15 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 }//GEN-LAST:event_formWindowClosing
 
     private void clearTemps() {
-        String cdpF = String.format(m_tmpDir + "/" + "cdp-%d.su", m_curCDP);
+        String cdpF = format(m_tmpDir + "/" + "cdp-%d.su", m_curCDP);
         java.io.File f = new java.io.File(cdpF);
         f.delete();
 
-        String smapF = String.format(m_tmpDir + "/" + "smap-%d.su", m_curCDP);
+        String smapF = format(m_tmpDir + "/" + "smap-%d.su", m_curCDP);
         f = new java.io.File(smapF);
         f.delete();
 
-        String nmoF = String.format(m_tmpDir + "/" + "nmo-%d.su", m_curCDP);
+        String nmoF = format(m_tmpDir + "/" + "nmo-%d.su", m_curCDP);
         f = new java.io.File(nmoF);
         f.delete();
     }
@@ -1122,22 +1152,22 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     }
 
     private void showNMO(int cdp) {
-        java.util.Vector<String> cmd = new java.util.Vector<String>();
+        final List<String> cmd = new ArrayList<>();
 
-        String cdpF = String.format("cdp-%d.su", cdp);
+        String cdpF = format("cdp-%d.su", cdp);
 
         cmd.add("bvsuwind.sh");
         cmd.add(m_inputFilePath);
         cmd.add(cdpF);
-        cmd.add(String.format("min=%d", cdp));
-        cmd.add(String.format("max=%d", cdp));
+        cmd.add(format("min=%d", cdp));
+        cmd.add(format("max=%d", cdp));
 
         try {
 
             String[] sa = new String[cmd.size()];
             cmd.toArray(sa);
 
-            Process p = Runtime.getRuntime().exec(sa);
+            Process p = getRuntime().exec(sa);
             showProcessLog(p);
             p.waitFor();
 
@@ -1146,7 +1176,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             cmd.add("bvsunmo.sh");
             cmd.add(cdpF);
 
-            String nmoF = String.format("nmo-%d.su", cdp);
+            String nmoF = format("nmo-%d.su", cdp);
             cmd.add(nmoF);
 
             // Sort velocity picks, increasing time
@@ -1155,26 +1185,26 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             SVPoint2DComparator ac = new SVPoint2DComparator();
 
-            java.util.Arrays.sort(pa, ac);
+            sort(pa, ac);
 
             String tnmo = "tnmo=";
             String vnmo = "vnmo=";
 
             int i;
-            tnmo += String.format("%.4f,", 0.0);
-            vnmo += String.format("%.4f,", pa[0].fx);
+            tnmo += format("%.4f,", 0.0);
+            vnmo += format("%.4f,", pa[0].fx);
 
             for (i = 0; i < pa.length; i++) {
-                tnmo += String.format("%.4f,", pa[i].fy);
-                vnmo += String.format("%.4f,", pa[i].fx);
+                tnmo += format("%.4f,", pa[i].fy);
+                vnmo += format("%.4f,", pa[i].fx);
             }
 
             float[] lm = gfxPanelCDP.getAxisLimits();
 
             float tmax = lm[1];
 
-            tnmo += String.format("%.4f", tmax);
-            vnmo += String.format("%.4f", pa[pa.length - 1].fx);
+            tnmo += format("%.4f", tmax);
+            vnmo += format("%.4f", pa[pa.length - 1].fx);
 
             cmd.add(tnmo);
             cmd.add(vnmo);
@@ -1182,7 +1212,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             sa = new String[cmd.size()];
             cmd.toArray(sa);
 
-            p = Runtime.getRuntime().exec(sa);
+            p = getRuntime().exec(sa);
 
             p.waitFor();
 
@@ -1211,42 +1241,39 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             java.io.File f = new java.io.File(nmoF);
             f.delete();
 
-        } catch (Exception e) {
+        } catch (IOException | InterruptedException e) {
         }
-
-
     }
 
     private void showCDP(int cdp) {
-        labelCDP.setText(String.format("CDP # %d", m_curCDP));
-        java.util.Vector<String> cmd = new java.util.Vector<String>();
+        labelCDP.setText(format("CDP # %d", m_curCDP));
+        List<String> cmd = new ArrayList<>();
 
-        String outF = String.format(m_tmpDir + "/" + "cdp-%d.su", cdp);
+        String outF = format(m_tmpDir + "/" + "cdp-%d.su", cdp);
 
         cmd.add("bvsuwind.sh");
         cmd.add(m_inputFilePath);
         cmd.add(outF);
-        cmd.add(String.format("min=%d", cdp));
-        cmd.add(String.format("max=%d", cdp));
+        cmd.add(format("min=%d", cdp));
+        cmd.add(format("max=%d", cdp));
 
         try {
-
             String[] sa = new String[cmd.size()];
             cmd.toArray(sa);
 
             String exec = "";
-            for (int i = 0; i < sa.length; i++) {
-                exec += sa[i]+"  ";
+            for (String sa1 : sa) {
+                exec += sa1 + "  ";
             }
-            Process p = Runtime.getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
-            System.out.println(exec);
+            Process p = getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
+            out.println(exec);
 //            Process p = Runtime.getRuntime().exec();
             showProcessLog(p);
             p.waitFor();
 
             usrdata.SUSection sc = new usrdata.SUSection();
             sc.readFromFile(outF);
-            
+
             int n1 = sc.getN1();
             int n2 = sc.getN2();
             float f1 = sc.getF1();
@@ -1277,10 +1304,9 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             nmoCurve.update(x, y);
 
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, e.toString());
+        } catch (IOException | InterruptedException e) {
+            showMessageDialog(this, e.toString());
         }
-
     }
 
     private void showSemblance(int cdp) {
@@ -1294,34 +1320,33 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         String filter = "1,10,80,100";
         String amps = "0,1,1,0";
 
-        java.util.Vector<String> cmd = new java.util.Vector<String>();
+        List<String> cmd = new ArrayList<>();
 
-        String cdpF = String.format(m_tmpDir + "/" + "cdp-%d.su", cdp);
+        String cdpF = format(m_tmpDir + "/" + "cdp-%d.su", cdp);
 //        String cdpF = String.format(m_tmpDir + "/" + "cdpsPraVelan.su");
 //        String smapF = String.format(m_tmpDir + "/" + "cdpsPraVelan2.su", cdp);
-        String smapF = String.format(m_tmpDir + "/" + "smap-%d.su", cdp);
+        String smapF = format(m_tmpDir + "/" + "smap-%d.su", cdp);
 
         cmd.add("bvsuvelan.sh");
         cmd.add(cdpF);
         cmd.add(smapF);
-        cmd.add(String.format(Locale.ENGLISH,"%.2f", tpow));
+        cmd.add(format(ENGLISH, "%.2f", tpow));
         cmd.add(filter);
         cmd.add(amps);
-        cmd.add(String.format("%d", nv));
-        cmd.add(String.format("%.0f", dv));
-        cmd.add(String.format("%.0f", fv));
-
+        cmd.add(format("%d", nv));
+        cmd.add(format("%.0f", dv));
+        cmd.add(format("%.0f", fv));
 
         try {
             String[] sa = new String[cmd.size()];
             cmd.toArray(sa);
 
-             String exec = "";
-            for (int i = 0; i < sa.length; i++) {
-                exec += sa[i]+"  ";
+            String exec = "";
+            for (String sa1 : sa) {
+                exec += sa1 + "  ";
             }
-            Process p = Runtime.getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
-            System.out.println(exec);
+            Process p = getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
+            out.println(exec);
 //            Process p = Runtime.getRuntime().exec(exec);
             showProcessLog(p);
             p.waitFor();
@@ -1334,15 +1359,15 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             float f1 = sc.getF1();
             float f2 = sc.getF2();
             float d1 = sc.getD1();
-            float d2 = sc.getD2();          
-            gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);         
+            float d2 = sc.getD2();
+            gfxPanelSemblance.setAxesLimits(f1, f1 + n1 * d1, fv, fv + nv * dv);
 
-            gfx.SVColorScale csActor = new gfx.SVColorScale(3, gfx.SVColorScale.LSBFirst);
+            gfx.SVColorScale csActor = new gfx.SVColorScale(3, LSBFirst);
             csActor.setData(sc.getData(), n1, f1, d1, n2, fv, dv);
 
             m_velocityAxis.setLimits(f2, f2 + n2 * d2);
 
-            m_gfxPanelColorbar = new GfxPanelColorbar(csActor, GfxPanelColorbar.HORIZONTAL);
+            m_gfxPanelColorbar = new GfxPanelColorbar(csActor, HORIZONTAL);
             colorbarPanel.removeAll();
             colorbarPanel.add(m_gfxPanelColorbar);
 
@@ -1350,9 +1375,8 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             gfxPanelSemblance.addActor(csActor);
 
-
         } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, e.toString());
+            showMessageDialog(this, e.toString());
             e.printStackTrace();
         }
 
@@ -1363,9 +1387,9 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
     private void showCVS(int cdp) {
         try {
-            java.util.Vector<String> cmd = new java.util.Vector<String>();
+            List<String> cmd = new ArrayList<>();
 
-            String cvsF = String.format(m_tmpDir + "/" + "cvs-%d.su", cdp);
+            String cvsF = format(m_tmpDir + "/" + "cvs-%d.su", cdp);
 
             usrdata.SUSection sc = new usrdata.SUSection();
             java.io.File inpF = new java.io.File(m_inputFilePath);
@@ -1380,25 +1404,24 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             cmd.add("bvcvs.sh");
             cmd.add(m_inputFilePath);
             cmd.add(cvsF);
-            cmd.add(String.format("%d", cdp));
-            cmd.add(String.format("%d", dcdp));
-            cmd.add(String.format("%d", m_cvsWindow));
-            cmd.add(String.format("%d", m_cvsNumPanels));
-            cmd.add(String.format("%.0f", m_cvsvmin));
-            cmd.add(String.format("%.0f", m_cvsvmax));
+            cmd.add(format("%d", cdp));
+            cmd.add(format("%d", dcdp));
+            cmd.add(format("%d", m_cvsWindow));
+            cmd.add(format("%d", m_cvsNumPanels));
+            cmd.add(format("%.0f", m_cvsvmin));
+            cmd.add(format("%.0f", m_cvsvmax));
 
             String[] sa = new String[cmd.size()];
             cmd.toArray(sa);
 
-             String exec = "";
-            for (int i = 0; i < sa.length; i++) {
-                exec += sa[i]+"  ";
+            String exec = "";
+            for (String sa1 : sa) {
+                exec += sa1 + "  ";
             }
 
-
-            System.out.println(exec);
+            out.println(exec);
 //            Process p = Runtime.getRuntime().exec(exec);
-            Process p = Runtime.getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
+            Process p = getRuntime().exec(sa, null, new java.io.File(m_tmpDir));
             showProcessLog(p);
 
             p.waitFor();
@@ -1411,17 +1434,16 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             float f1 = sc.getF1();
             float f2 = sc.getF2();
             float d1 = sc.getD1();
-            float d2 = sc.getD2();
 
             float a = ((m_cvsvmax - m_cvsvmin) / m_cvsNumPanels);
-            d2 = ((m_cvsvmax + a / 2) - (m_cvsvmin - a / 2)) / n2;
+            float d2 = ((m_cvsvmax + a / 2) - (m_cvsvmin - a / 2)) / n2;
 
             f2 = f2 - (m_cvsvmax - m_cvsvmin) / (2 * m_cvsNumPanels);
 
             m_cvsVelocityAxis.setLimits(f2, f2 + n2 * d2);
             gfxPanelCVS.setAxesLimits(f1, f1 + n1 * d1, f2, f2 + n2 * d2);
 
-            gfx.SVColorScale csActor = new gfx.SVColorScale(3, gfx.SVColorScale.LSBFirst);
+            gfx.SVColorScale csActor = new gfx.SVColorScale(3, LSBFirst);
             csActor.setData(sc.getData(), n1, f1, d1, n2, f2, d2);
             csActor.setRGBColormap(0);
 
@@ -1432,16 +1454,14 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             // Clear temporary files
             java.io.File f = new java.io.File(cvsF);
             f.delete();
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, e.toString());
-            e.printStackTrace();
+        } catch (IOException | InterruptedException e) {
+            showMessageDialog(this, e.toString());
         }
-
 
     }
 
     private void showProcessLog(Process p) throws IOException {
-        int a =0;
+        int a = 0;
 //        while( (a = p.getErrorStream().read()) >= 0){
 ////            System.out.print((char)a);
 //        }
@@ -1449,6 +1469,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
     private class SVPoint2DComparator implements java.util.Comparator<gfx.SVPoint2D> {
 
+        @Override
         public int compare(SVPoint2D o1, SVPoint2D o2) {
             if (o1.fy == o2.fy) {
                 return 0;
@@ -1461,30 +1482,30 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     }
 
     private void parseCommandLine(String args[]) {
-        for (int i = 0; i < args.length; i++) {
-            String[] key = args[i].split("=");
+        for (String arg : args) {
+            String[] key = arg.split("=");
             if ("cdpmin".equalsIgnoreCase(key[0])) {
-                m_cdpMin = Integer.parseInt(key[1]);
+                m_cdpMin = parseInt(key[1]);
             } else if ("cdpmax".equalsIgnoreCase(key[0])) {
-                m_cdpMax = Integer.parseInt(key[1]);
+                m_cdpMax = parseInt(key[1]);
             } else if ("cdpint".equalsIgnoreCase(key[0])) {
-                m_cdpInterval = Integer.parseInt(key[1]);
+                m_cdpInterval = parseInt(key[1]);
             } else if ("tmin".equalsIgnoreCase(key[0])) {
-                m_tmin = Float.parseFloat(key[1]);
+                m_tmin = parseFloat(key[1]);
             } else if ("tmax".equalsIgnoreCase(key[0])) {
-                m_tmax = Float.parseFloat(key[1]);
+                m_tmax = parseFloat(key[1]);
             } else if ("velpicks".equalsIgnoreCase(key[0])) {
                 m_picksFilePath = key[1];
             } else if ("vmin".equalsIgnoreCase(key[0])) {
-                m_vmin = Float.parseFloat(key[1]);
+                m_vmin = parseFloat(key[1]);
             } else if ("vmax".equalsIgnoreCase(key[0])) {
-                m_vmax = Float.parseFloat(key[1]);
+                m_vmax = parseFloat(key[1]);
             } else if ("nv".equalsIgnoreCase(key[0])) {
-                m_dv = (m_vmax - m_vmin) / Integer.parseInt(key[1]);
+                m_dv = (m_vmax - m_vmin) / parseInt(key[1]);
             } else if ("cvsw".equalsIgnoreCase(key[0])) {
-                m_cvsWindow = Integer.parseInt(key[1]);
+                m_cvsWindow = parseInt(key[1]);
             } else if ("cvsnp".equalsIgnoreCase(key[0])) {
-                m_cvsNumPanels = Integer.parseInt(key[1]);
+                m_cvsNumPanels = parseInt(key[1]);
             } else if ("in".equalsIgnoreCase(key[0])) {
                 m_inputFilePath = key[1];
             }
@@ -1541,9 +1562,9 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
         picksCurve.clear();
         intervalCurve.clear();
 
-        Vector<gfx.SVPoint2D> cdpVelocityPicks;
+        List<gfx.SVPoint2D> cdpVelocityPicks;
         for (int cdp = m_cdpMin; cdp <= m_cdpMax; cdp += m_cdpInterval) {
-            m_velocityPicks.add(new Vector<gfx.SVPoint2D>());
+            m_velocityPicks.add(new ArrayList<>());
         }
 
         m_curCDP = m_cdpMin;
@@ -1561,9 +1582,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     }
 
     private void open() {
-        try {
-
-            java.util.Scanner sc = new java.util.Scanner(m_projectFile);
+        try (java.util.Scanner sc = new java.util.Scanner(m_projectFile)) {
 
             java.util.Scanner sc2;
 
@@ -1637,13 +1656,10 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             m_cvsvmin = m_vmin;
             m_cvsvmax = m_vmax;
 
-            sc.close();
-
-            loadPicksFromFile(new java.io.File(m_picksFilePath));
         } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, e);
-            e.printStackTrace();
+            showMessageDialog(this, e);
         }
+        loadPicksFromFile(new java.io.File(m_picksFilePath));
     }
 
     private void close() {
@@ -1682,71 +1698,58 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
                 int ret = jfc.showSaveDialog(this);
 
-                if (ret == javax.swing.JFileChooser.APPROVE_OPTION) {
+                if (ret == APPROVE_OPTION) {
                     m_projectFile = new java.io.File(jfc.getSelectedFile().toString());
                 }
             }
 
             if (m_projectFile != null) {
-                java.io.PrintWriter pw = new java.io.PrintWriter(m_projectFile);
-
                 // Write header
-                pw.println("/* This file was automatically generated by BotoSeis iVelan module. Do not edit.*/");
-                pw.println("iVelan");
-                pw.println("BotoSeis project: http://botoseis.sourceforge.net");
-                pw.println("Federal University of Para, Brazil");
-                pw.println("Institute of Geophysics");
-
-                pw.print("");
-                // User info
-                pw.println("[User info]");
-                pw.println("userName=" + System.getenv("USER"));
-
-                pw.println();
-
-                // Input
-                pw.println("[Input]");
-                pw.println("dataFile=" + m_inputFilePath);
-
-                pw.println();
-
-                // Output
-                pw.println("[Output]");
-                pw.println("picksFile=" + m_picksFilePath);
-
-                pw.println();
-
-                // CDPs parameters
-                pw.println("[CDPs parameters]");
-                pw.println(String.format("cdpMin=%d", m_cdpMin));
-                pw.println(String.format("cdpMax=%d", m_cdpMax));
-                pw.println(String.format("cdpInterval=%d", m_cdpInterval));
-                pw.println(String.format("timeMin=%.2f", m_tmin));
-                pw.println(String.format("timeMax=%.2f", m_tmax));
-
-                pw.println();
-
-                // Semblance parameters
-                pw.println("[Semblance parameters]");
-                pw.println(String.format("vmin=%.2f", m_vmin));
-                pw.println(String.format("vmax=%.2f", m_vmax));
-                pw.println(String.format("dv=%.2f", m_dv));
-
-                pw.println();
-
-                // CVS parameters
-                pw.println("[CVS parameters]");
-                pw.println(String.format("window=%d", m_cvsWindow));
-                pw.println(String.format("panels=%d", m_cvsNumPanels));
-
-                pw.close();
+                try (java.io.PrintWriter pw = new java.io.PrintWriter(m_projectFile)) {
+                    // Write header
+                    pw.println("/* This file was automatically generated by BotoSeis iVelan module. Do not edit.*/");
+                    pw.println("iVelan");
+                    pw.println("BotoSeis project: http://botoseis.sourceforge.net");
+                    pw.println("Federal University of Para, Brazil");
+                    pw.println("Institute of Geophysics");
+                    pw.print("");
+                    // User info
+                    pw.println("[User info]");
+                    pw.println("userName=" + getenv("USER"));
+                    pw.println();
+                    // Input
+                    pw.println("[Input]");
+                    pw.println("dataFile=" + m_inputFilePath);
+                    pw.println();
+                    // Output
+                    pw.println("[Output]");
+                    pw.println("picksFile=" + m_picksFilePath);
+                    pw.println();
+                    // CDPs parameters
+                    pw.println("[CDPs parameters]");
+                    pw.println(format("cdpMin=%d", m_cdpMin));
+                    pw.println(format("cdpMax=%d", m_cdpMax));
+                    pw.println(format("cdpInterval=%d", m_cdpInterval));
+                    pw.println(format("timeMin=%.2f", m_tmin));
+                    pw.println(format("timeMax=%.2f", m_tmax));
+                    pw.println();
+                    // Semblance parameters
+                    pw.println("[Semblance parameters]");
+                    pw.println(format("vmin=%.2f", m_vmin));
+                    pw.println(format("vmax=%.2f", m_vmax));
+                    pw.println(format("dv=%.2f", m_dv));
+                    pw.println();
+                    // CVS parameters
+                    pw.println("[CVS parameters]");
+                    pw.println(format("window=%d", m_cvsWindow));
+                    pw.println(format("panels=%d", m_cvsNumPanels));
+                }
 
                 savePicksToFile(new java.io.File(m_picksFilePath));
             }
             m_isModified = false;
         } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, e);
-            e.printStackTrace();
+            showMessageDialog(this, e);
         }
     }
 
@@ -1758,11 +1761,11 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
             sc2 = new java.util.Scanner(sc.nextLine()).useDelimiter(",");
             int count = 0;
             while (sc2.hasNext()) {
-                m_velocityPicks.add(new Vector<gfx.SVPoint2D>());
+                m_velocityPicks.add(new ArrayList<>());
                 count++;
             }
 
-            Vector<gfx.SVPoint2D> picks;
+            List<gfx.SVPoint2D> picks;
             gfx.SVPoint2D p;
             for (int i = 0; i < count; i++) {
                 sc2 = new java.util.Scanner(sc.nextLine()).useDelimiter(",");
@@ -1778,20 +1781,18 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
                 }
             }
         } catch (FileNotFoundException ex) {
-            javax.swing.JOptionPane.showMessageDialog(this, ex);
-            ex.printStackTrace();
+            showMessageDialog(this, ex);
         }
     }
 
     private void savePicksToFile(java.io.File outF) {
-        try {
-            java.io.PrintWriter pw = new java.io.PrintWriter(outF);
+        try (java.io.PrintWriter pw = new java.io.PrintWriter(outF)) {
 
             int size = m_velocityPicks.size();
             String line = "cdp=";
             for (int i = 0; i < size; i++) {
                 if (m_velocityPicks.get(i).size() > 0) {
-                    line += String.format("%d", m_cdpMin + i * m_cdpInterval);
+                    line += format("%d", m_cdpMin + i * m_cdpInterval);
                     if (i < size - 1) {
                         line += ",";
                     }
@@ -1800,7 +1801,7 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
 
             pw.println(line);
 
-            Vector<gfx.SVPoint2D> picks;
+            List<gfx.SVPoint2D> picks;
             String tnmo = "tnmo=";
             String vnmo = "vnmo=";
             for (int i = 0; i < size; i++) {
@@ -1810,11 +1811,11 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
                     tnmo = "tnmo=";
                     vnmo = "vnmo=";
                     for (int j = 0; j < n; j++) {
-                        tnmo += String.format(Locale.ENGLISH,"%.2f", picks.get(j).fy);
+                        tnmo += format(ENGLISH, "%.2f", picks.get(j).fy);
                         if (j < n - 1) {
                             tnmo += ",";
                         }
-                        vnmo += String.format(Locale.ENGLISH,"%.2f", picks.get(j).fx);
+                        vnmo += format(ENGLISH, "%.2f", picks.get(j).fx);
                         if (j < n - 1) {
                             vnmo += ",";
                         }
@@ -1824,10 +1825,8 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
                     pw.println(vnmo);
                 }
             }
-            pw.close();
         } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, e);
-            e.printStackTrace();
+            showMessageDialog(this, e);
         }
     }
 
@@ -1835,13 +1834,10 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
      * @param args the command line arguments
      */
     public static void main(final String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-
-            public void run() {               
-                MainWindow wnd = new MainWindow();
-                wnd.setCommandLine(args);
-                wnd.setVisible(true);
-            }
+        invokeLater(() -> {
+            MainWindow wnd = new MainWindow();
+            wnd.setCommandLine(args);
+            wnd.setVisible(true);
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1895,8 +1891,8 @@ private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:even
     gfx.SVXYPlot nmoCurve = new gfx.SVXYPlot();
     gfx.SVXYPlot picksCurve = new gfx.SVXYPlot();
     gfx.SVXYPlot intervalCurve = new gfx.SVXYPlot();
-    Vector<Vector<gfx.SVPoint2D>> m_velocityPicks = new Vector<Vector<gfx.SVPoint2D>>();
-    Vector<gfx.SVPoint2D> m_currentCDPVelocityPicks = null;
+    List<List<gfx.SVPoint2D>> m_velocityPicks = new ArrayList<>();
+    List<gfx.SVPoint2D> m_currentCDPVelocityPicks;
     GfxPanelColorbar m_gfxPanelColorbar = null;
     String m_inputFilePath = "";
     // CDP parameters

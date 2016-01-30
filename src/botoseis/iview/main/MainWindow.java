@@ -9,56 +9,76 @@ import botoseis.iview.dialogs.DialogGain;
 import botoseis.iview.dialogs.DialogHeaderTrace;
 import botoseis.iview.dialogs.DialogParametersImage;
 import botoseis.mainGui.utils.Preferences;
+import static botoseis.mainGui.utils.Preferences.getPreferences;
 import gfx.SVActor;
 import gfx.AxisPanel;
 import gfx.GfxPanelColorbar;
-import gfx.SVColorScale;
+import static gfx.GfxPanelColorbar.HORIZONTAL;
+import static gfx.SVAxis.AXIS_LEFT;
+import static gfx.SVAxis.AXIS_TOP;
+import static gfx.SVAxis.VERTICAL;
+import static gfx.SVColorScale.HSV;
+import static gfx.SVColorScale.RGB;
 import gfx.SVPoint2D;
 import gfx.SVXYPlot;
+import static gfx.SVXYPlot.SOLID;
 import java.awt.BorderLayout;
+import static java.awt.BorderLayout.NORTH;
+import static java.awt.BorderLayout.SOUTH;
+import static java.awt.Color.red;
 import java.awt.Dimension;
-import java.awt.event.ItemEvent;
+import static java.awt.EventQueue.invokeLater;
+import static java.awt.event.ItemEvent.DESELECTED;
+import static java.awt.event.ItemEvent.SELECTED;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import static java.lang.Math.round;
+import static java.lang.String.format;
+import static java.lang.String.valueOf;
+import static java.lang.System.exit;
+import static java.lang.System.in;
+import static java.lang.System.out;
 import java.util.ArrayList;
-import java.util.Vector;
+import java.util.List;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static javax.swing.SwingConstants.CENTER;
 import usrdata.SUHeader;
 import usrdata.SUSection;
 import usrdata.SUTrace;
 
 /**
  *
- * @author  williams
+ * @author williams
  */
 public class MainWindow extends javax.swing.JFrame {
 
-    /** Creates new form MainWindow */
+    /**
+     * Creates new form MainWindow
+     */
     public MainWindow() {
         initComponents();
 
         panelCDP.add(gfxPanelCDP);
         gfxPanelCDP.setVisibleScrollBar(true);
 
-        m_timeAxis = new gfx.SVAxis(gfx.SVAxis.VERTICAL, gfx.SVAxis.AXIS_LEFT, "Time (s)");
-        m_cdpOffsetAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "Offset (km)");
+        m_timeAxis = new gfx.SVAxis(VERTICAL, AXIS_LEFT, "Time (s)");
+        m_cdpOffsetAxis = new gfx.SVAxis(HORIZONTAL, AXIS_TOP, "Offset (km)");
 
         m_timeAxis.setLimits(0.0f, 1.0f);
         m_cdpOffsetAxis.setLimits(0.0f, 1.0f);
 
         mHeader = new SVXYPlot();
-        mHeader.setLineStyle(gfx.SVXYPlot.SOLID);
+        mHeader.setLineStyle(SOLID);
         mHeader.setPointsVisible(true);
-        mHeader.setDrawColor(java.awt.Color.red);
+        mHeader.setDrawColor(red);
         mHeader.setDrawSize(1);
         mHeader.setVisible(true);
         gfxPanelCDP.addXYPlot(mHeader);
-        
-        preferences = Preferences.getPreferences();
-        System.out.println("USING FORMAT: "+preferences.getFormat());
 
+        preferences = getPreferences();
+        out.println("USING FORMAT: " + preferences.getFormat());
 
         m_currMapColor = 2;
 
@@ -78,31 +98,31 @@ public class MainWindow extends javax.swing.JFrame {
                 if (m_csActor != null) {
                     switch (e.getKeyChar()) {
                         case 'r':
-                            m_csActor.setColorMapType(m_csActor.RGB);
+                            m_csActor.setColorMapType(RGB);
                             m_csActor.nextColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.RGB;
+                            m_currMapType = RGB;
                             break;
                         case 'h':
-                            m_csActor.setColorMapType(m_csActor.HSV);
+                            m_csActor.setColorMapType(HSV);
                             m_csActor.nextColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.HSV;
+                            m_currMapType = HSV;
                             break;
                         case 'R':
-                            m_csActor.setColorMapType(m_csActor.RGB);
+                            m_csActor.setColorMapType(RGB);
                             m_csActor.previousColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.RGB;
+                            m_currMapType = RGB;
                             break;
                         case 'H':
-                            m_csActor.setColorMapType(m_csActor.HSV);
+                            m_csActor.setColorMapType(HSV);
                             m_csActor.previousColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.HSV;
+                            m_currMapType = HSV;
                             break;
                         default:
-                            m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, GfxPanelColorbar.HORIZONTAL);
+                            m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, HORIZONTAL);
                             colorbarPanel.removeAll();
                             colorbarPanel.add(m_gfxPanelColorbar);
                             break;
@@ -117,12 +137,12 @@ public class MainWindow extends javax.swing.JFrame {
                         btnPreviousActionPerformed(null);
                         break;
                 }
-
             }
         });
 
         gfxPanelCDP.addMouseListener(new MouseListener() {
 
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (btnHeader.isSelected()) {
                     //throw new UnsupportedOperationException("Not supported yet.");
@@ -134,8 +154,8 @@ public class MainWindow extends javax.swing.JFrame {
 
                     float dt = section.getD1();//=dt do matlab = 0.004
 
-                    int XMatr = Math.round((p.fx - XlengthHI) / distanciax) + 1;
-                    int YMatr = Math.round((p.fy - delrt) / dt) + 1;
+                    int XMatr = round((p.fx - XlengthHI) / distanciax) + 1;
+                    int YMatr = round((p.fy - delrt) / dt) + 1;
 
                     int n_linhamaximo = section.getN1();
                     int n = YMatr - 1 + (XMatr - 1) * (n_linhamaximo);
@@ -163,9 +183,9 @@ public class MainWindow extends javax.swing.JFrame {
                     dlgHeader.setVisible(true);
                 }
 
-
             }
 
+            @Override
             public void mousePressed(MouseEvent e) {
 //                throw new UnsupportedOperationException("Not supported yet.");
                 if (btnZoom.isSelected()) {
@@ -173,6 +193,7 @@ public class MainWindow extends javax.swing.JFrame {
                 }
             }
 
+            @Override
             public void mouseReleased(java.awt.event.MouseEvent e) {
                 if (btnZoom.isSelected()) {
                     p2Zoom = gfxPanelCDP.getMouseLocation();
@@ -185,31 +206,29 @@ public class MainWindow extends javax.swing.JFrame {
                 getGfxPanelCDP().requestFocus();
             }
 
+            @Override
             public void mouseExited(MouseEvent e) {
 //                throw new UnsupportedOperationException("Not supported yet.");
             }
         });
 
-
         gfxPanelCDP.addMouseMotionListener(new MouseMotionListener() {
 
+            @Override
             public void mouseDragged(MouseEvent e) {
             }
 
+            @Override
             public void mouseMoved(MouseEvent e) {
                 //throw new UnsupportedOperationException("Not supported yet.");
                 SVActor act = null;
 
                 if (wiggle) {
                     act = m_wgActor;
-                } else {
-                    if (image) {
-                        act = m_csActor;
-                    } else {
-                        if (contour) {
-                            act = m_cmActor;
-                        }
-                    }
+                } else if (image) {
+                    act = m_csActor;
+                } else if (contour) {
+                    act = m_cmActor;
                 }
                 SVPoint2D p = getGfxPanelCDP().getMouseLocation();
                 float XlengthHI = section.getF2();//=H(1).sx/scalco
@@ -219,8 +238,8 @@ public class MainWindow extends javax.swing.JFrame {
 
                 float dt = section.getD1();//=dt do matlab = 0.004
 
-                int XMatr = Math.round((p.fx - XlengthHI) / distanciax) + 1;
-                int YMatr = Math.round((p.fy - delrt) / dt) + 1;
+                int XMatr = round((p.fx - XlengthHI) / distanciax) + 1;
+                int YMatr = round((p.fy - delrt) / dt) + 1;
 
                 int n_linhamaximo = section.getN1();
                 int n = YMatr - 1 + (XMatr - 1) * (n_linhamaximo);
@@ -228,7 +247,7 @@ public class MainWindow extends javax.swing.JFrame {
                 int trace = n / section.getN1();
                 if (trace < section.getTraces().size()) {
                     SUHeader h = section.getTraces().get(trace).getHeader();
-                    tfBar.setText(String.format("fldr: %d tracf: %d cdp: %d ep: %d offset: %d  time: %.2f  amp: %.7f ", h.fldr, h.tracf, h.cdp, h.ep, h.offset, p.fy, act.getData()[n]));
+                    tfBar.setText(format("fldr: %d tracf: %d cdp: %d ep: %d offset: %d  time: %.2f  amp: %.7f ", h.fldr, h.tracf, h.cdp, h.ep, h.offset, p.fy, act.getData()[n]));
                 }
 //                System.out.println(p.ix+"  "+p.iy+"  "+p.fx+" "+p.fy);
             }
@@ -246,14 +265,12 @@ public class MainWindow extends javax.swing.JFrame {
         dlgHeader = new DialogHeaderTrace(this, false);
         dlgGain = new DialogGain(this, true);
 
-
-
     }
 
-    /** This method is called from within the constructor to
-     * initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is
-     * always regenerated by the Form Editor.
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -533,123 +550,121 @@ private void menuViewImageActionPerformed(java.awt.event.ActionEvent evt) {//GEN
 }//GEN-LAST:event_menuViewImageActionPerformed
 
 private void menuViewWiggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewWiggleActionPerformed
-        setModeView("wiggle");
-        repaint();
+    setModeView("wiggle");
+    repaint();
 }//GEN-LAST:event_menuViewWiggleActionPerformed
 
 private void menuViewContourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewContourActionPerformed
-        setModeView("contour");
-        repaint();
+    setModeView("contour");
+    repaint();
 }//GEN-LAST:event_menuViewContourActionPerformed
 
 private void menuViewImageWiggleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewImageWiggleActionPerformed
-        setModeView("wiggle,image");
-        repaint();
+    setModeView("wiggle,image");
+    repaint();
 }//GEN-LAST:event_menuViewImageWiggleActionPerformed
 
 private void menuViewImageContourActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuViewImageContourActionPerformed
-        setModeView("contour,image");
-        repaint();
+    setModeView("contour,image");
+    repaint();
 }//GEN-LAST:event_menuViewImageContourActionPerformed
 
 private void btnZoomItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_btnZoomItemStateChanged
-        if (evt.getStateChange() == evt.SELECTED) {
-            getGfxPanelCDP().activateZoom(true);
-        } else {
-            getGfxPanelCDP().activateZoom(false);
-        }
+    if (evt.getStateChange() == SELECTED) {
+        getGfxPanelCDP().activateZoom(true);
+    } else {
+        getGfxPanelCDP().activateZoom(false);
+    }
 }//GEN-LAST:event_btnZoomItemStateChanged
 
 private void btnNextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNextActionPerformed
 
-
-        if (mapSection.lastIndexOf(section.getTraces()) < 0 || (mapSection.lastIndexOf(section.getTraces()) + 1) == mapSection.size()) {
-            if (!section.isEof()) {
-                section.readFromInputStream(System.in);
-                mapSection.add((Vector<SUTrace>) section.getTraces().clone());
-                if (mapSection.size() > saveSection) {
-                    mapSection.remove(0);
-                }
+    if (mapSection.lastIndexOf(section.getTraces()) < 0 || (mapSection.lastIndexOf(section.getTraces()) + 1) == mapSection.size()) {
+        if (!section.isEof()) {
+            section.readFromInputStream(in);
+            mapSection.add(section.getTraces());
+            if (mapSection.size() > saveSection) {
+                mapSection.remove(0);
             }
-        } else {
-            section.setTraces(mapSection.get(mapSection.lastIndexOf(section.getTraces()) + 1));
         }
+    } else {
+        section.setTraces(mapSection.get(mapSection.lastIndexOf(section.getTraces()) + 1));
+    }
 
-        showView();
+    showView();
 
 }//GEN-LAST:event_btnNextActionPerformed
 
 private void btnPreviousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPreviousActionPerformed
-        // TODO add your handling code here:
+    // TODO add your handling code here:
 
-        if (mapSection.indexOf(section.getTraces()) > 0) {
-            section.setTraces(mapSection.get(mapSection.indexOf(section.getTraces()) - 1));
-        }
-        showView();
+    if (mapSection.indexOf(section.getTraces()) > 0) {
+        section.setTraces(mapSection.get(mapSection.indexOf(section.getTraces()) - 1));
+    }
+    showView();
 
 }//GEN-LAST:event_btnPreviousActionPerformed
 
 private void btnHeaderItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_btnHeaderItemStateChanged
-        if (evt.getStateChange() == ItemEvent.DESELECTED) {
-            float fx[] = new float[0];
-            float fy[] = new float[0];
-            getmHeader().update(fx, fy);
-            getGfxPanelCDP().repaint();
-            dlgHeader.dispose();
-        }
+    if (evt.getStateChange() == DESELECTED) {
+        float fx[] = new float[0];
+        float fy[] = new float[0];
+        getmHeader().update(fx, fy);
+        getGfxPanelCDP().repaint();
+        dlgHeader.dispose();
+    }
 }//GEN-LAST:event_btnHeaderItemStateChanged
 
 private void btnGainActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGainActionPerformed
-        // TODO add your handling code here:
+    // TODO add your handling code here:
 
-        dlgGain.setVisible(true);
-        if (dlgGain.isApply()) {
-            showView();
-        }
+    dlgGain.setVisible(true);
+    if (dlgGain.isApply()) {
+        showView();
+    }
 }//GEN-LAST:event_btnGainActionPerformed
 
 private void menuExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuExitActionPerformed
-        System.exit(0);
+    exit(0);
 }//GEN-LAST:event_menuExitActionPerformed
 
 private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnClipActionPerformed
-        // TODO add your handling code here:
-        DialogParametersImage dlgparamimag = new DialogParametersImage(this, true, m_csActor, m_wgActor, panelCDP);
+    // TODO add your handling code here:
+    DialogParametersImage dlgparamimag = new DialogParametersImage(this, true, m_csActor, m_wgActor, panelCDP);
 
-        if (m_csActor != null) {
-            imageperc = m_csActor.getImagPerc();
-            imagebalance = (int) m_csActor.getImagimagebalance();
-        }
-        dlgparamimag.setimage_perc(imageperc);
-        dlgparamimag.setimage_balance(imagebalance);
+    if (m_csActor != null) {
+        imageperc = m_csActor.getImagPerc();
+        imagebalance = (int) m_csActor.getImagimagebalance();
+    }
+    dlgparamimag.setimage_perc(imageperc);
+    dlgparamimag.setimage_balance(imagebalance);
+    if (m_wgActor != null) {
+        wigbperc = m_wgActor.getwigbperc();
+    }
+    dlgparamimag.setwigb_perc(wigbperc);
+    dlgparamimag.setVisible(true);
+    //   dlgparamimag.setVisible(true);
+    int verifyimage = dlgparamimag.getParameterVerifyimage();
+
+    if (verifyimage == 1) {
+        imageperc = dlgparamimag.getimage_perc();
+        imagebalance = (int) dlgparamimag.getimage_balance();
+        wigbperc = dlgparamimag.getwigb_perc();
         if (m_wgActor != null) {
-            wigbperc = m_wgActor.getwigbperc();
+            m_wgActor.setPercParameters(wigbperc);//, wigbclip);
         }
-        dlgparamimag.setwigb_perc(wigbperc);
-        dlgparamimag.setVisible(true);
-        //   dlgparamimag.setVisible(true);
-        int verifyimage = 0;
-        verifyimage = dlgparamimag.getParameterVerifyimage();
+        if (m_csActor != null) {
 
-        if (verifyimage == 1) {
-            imageperc = dlgparamimag.getimage_perc();
-            imagebalance = (int) dlgparamimag.getimage_balance();
-            wigbperc = dlgparamimag.getwigb_perc();
-            if (m_wgActor != null) {
-                m_wgActor.setPercParameters(wigbperc);//, wigbclip);
+            if ((imageperc < 0) || (imageperc > 100)) {
+                imageperc = 100.0f;
             }
-            if (m_csActor != null) {
-
-                if ((imageperc < 0) || (imageperc > 100)) {
-                    imageperc = 100.0f;
-                }
-                m_csActor.setImagePerc(imageperc);
-                if ((imagebalance != 1) && (imagebalance != 0)) {
-                    imagebalance = 0;
-                }
+            m_csActor.setImagePerc(imageperc);
+            if ((imagebalance != 1) && (imagebalance != 0)) {
+                imagebalance = 0;
             }
-            panelCDP.repaint();
         }
+        panelCDP.repaint();
+    }
 }//GEN-LAST:event_btnClipActionPerformed
 
     private void onGraphicsPanelMouseReleased(MouseEvent e) {
@@ -661,30 +676,25 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
         if (wiggle) {
             act = m_wgActor;
-        } else {
-            if (image) {
-                act = m_csActor;
-            } else {
-                if (contour) {
-                    act = m_cmActor;
-                }
-            }
+        } else if (image) {
+            act = m_csActor;
+        } else if (contour) {
+            act = m_cmActor;
         }
-        System.out.println(skey);
-        System.out.println(section.getTraces().size());
+        out.println(skey);
+        out.println(section.getTraces().size());
         int trc1 = act.getTraceAt(p1Zoom.fx, p1Zoom.fy);
         int trc2 = act.getTraceAt(p2Zoom.fx, p2Zoom.fy);
-        System.out.println(trc1 + "   " + trc2);
+        out.println(trc1 + "   " + trc2);
         if (trc1 == trc2) {
             trc1 = 0;
             trc2 = section.getTraces().size() - 1;
         }
 
-        System.out.println(getSkeyValueAt(trc1) + "  " + getSkeyValueAt(trc2));
+        out.println(getSkeyValueAt(trc1) + "  " + getSkeyValueAt(trc2));
         m_cdpOffsetAxis.setLimits(getSkeyValueAt(trc1), getSkeyValueAt(trc2));
 
         m_timeAxis.setLimits(lm[0], lm[1]);
-
 
         panelA.repaint();
         panelB.repaint();
@@ -693,16 +703,13 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
     public void setModeView(String modeview) {
         wiggle = image = contour = false;
         String split[] = modeview.split(",");
-        for (int i = 0; i < split.length; i++) {
-            String mode = split[i];
+        for (String mode : split) {
             if (mode.equals("wiggle")) {
                 wiggle = true;
+            } else if (mode.equals("image")) {
+                image = true;
             } else {
-                if (mode.equals("image")) {
-                    image = true;
-                } else {
-                    contour = true;
-                }
+                contour = true;
             }
         }
         showView();
@@ -731,20 +738,18 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         float d1 = section.getD1();
         float d2 = section.getD2();
 
-
-
         getGfxPanelCDP().setAxesLimits(f1, f1 + n1 * d1, f2, f2 + n2 * d2);
         m_timeAxis.setLimits(f1, f1 + n1 * d1);
 //        m_cdpOffsetAxis.setLimits(f2, f2 + n2 * d2);
 
         setAxis();
 
-        m_csActor = new gfx.SVColorScale(3, gfx.SVColorScale.NORMAL);
+        m_csActor = new gfx.SVColorScale(3, NORMAL);
         m_csActor.setData(section.getData(), n1, f1, d1, n2, f2, d2);
         m_csActor.setImagePerc(imageperc);
         m_csActor.setbalance(imagebalance);
-        m_csActor.setColormap(m_currMapType,m_currMapColor);
-        m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, GfxPanelColorbar.HORIZONTAL);
+        m_csActor.setColormap(m_currMapType, m_currMapColor);
+        m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, HORIZONTAL);
         colorbarPanel.removeAll();
         colorbarPanel.add(m_gfxPanelColorbar);
 
@@ -755,18 +760,16 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
     public void setAxis() {
         if (!stackData) {
-            float min = 0, max = 0;
-            int key = 0;
-            if (pkey == null || pkey.equals("")) {
+            if (pkey == null || pkey.isEmpty()) {
                 pkey = "ep";
             }
-            if (skey == null || skey.equals("")) {
+            if (skey == null || skey.isEmpty()) {
                 skey = "tracf";
             }
-            key = section.getTraces().get(0).getHeader().getValue(pkey);
+            int key = section.getTraces().get(0).getHeader().getValue(pkey);
 
-            min = section.getTraces().get(0).getHeader().getValue(skey);
-            max = section.getTraces().get(section.getTraces().size() - 1).getHeader().getValue(skey);
+            int min = section.getTraces().get(0).getHeader().getValue(skey);
+            int max = section.getTraces().get(section.getTraces().size() - 1).getHeader().getValue(skey);
 
             m_cdpOffsetAxis.setLimits(min, max);
             m_cdpOffsetAxis.setLimitsInitial(min, max);
@@ -774,19 +777,16 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
             panelPkey.removeAll();
 
             JLabel lpkey = new JLabel(pkey.toUpperCase());
-            lpkey.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            lpkey.setHorizontalAlignment(CENTER);
 
+            JLabel lvalue = new JLabel(valueOf(key));
+            lvalue.setHorizontalAlignment(CENTER);
 
-            JLabel lvalue = new JLabel(String.valueOf(key));
-            lvalue.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-
-            panelPkey.add(lpkey, BorderLayout.NORTH);
-            panelPkey.add(lvalue, BorderLayout.SOUTH);
+            panelPkey.add(lpkey, NORTH);
+            panelPkey.add(lvalue, SOUTH);
             panelPkey.updateUI();
 //            m_cdpOffsetAxis.setTitle(pkey.toUpperCase() + " (" + key + ")");
         } else {
-
-            int min = 0, max = 0;
 //            if (pkey != null && pkey.equals("offset")) {
 //                min = section.getTraces().get(0).getHeader().offset;
 //                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().offset;
@@ -805,13 +805,13 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 //                min = section.getTraces().get(0).getHeader().cdp;
 //                max = section.getTraces().get(section.getTraces().size() - 1).getHeader().cdp;
 //            }
-            if (pkey == null || pkey.trim().equals("")) {
+            if (pkey == null || pkey.trim().isEmpty()) {
                 skey = pkey = "cdp";
             }
-            min = section.getTraces().get(0).getHeader().getValue(skey);
-            max = section.getTraces().get(section.getTraces().size() - 1).getHeader().getValue(skey);
+            int min = section.getTraces().get(0).getHeader().getValue(skey);
+            int max = section.getTraces().get(section.getTraces().size() - 1).getHeader().getValue(skey);
             if (min == max) {
-                JOptionPane.showMessageDialog(null, pkey + " invalid! \nAssuming pkey: cdp");
+                showMessageDialog(null, pkey + " invalid! \nAssuming pkey: cdp");
                 pkey = skey = "cdp";
             }
             min = section.getTraces().get(0).getHeader().getValue(skey);
@@ -904,19 +904,19 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
         if (pkey != null) {
             section.setPkey(pkey);
         }
-        section.readFromInputStream(System.in);
-        mapSection.add((Vector<SUTrace>) section.getTraces().clone());
+        section.readFromInputStream(in);
 
+        mapSection.add(section.getTraces());
 
     }
-    
-    public void updatePreferences(){
+
+    public void updatePreferences() {
         section.setFormat(preferences.getFormat());
     }
 
     private void parseCommandLine(String args[]) {
-        for (int i = 0; i < args.length; i++) {
-            String[] key = args[i].split("=");
+        for (String arg : args) {
+            String[] key = arg.split("=");
             if ("key".equalsIgnoreCase(key[0])) {
                 wndKey = key[1];
             } else if ("min".equalsIgnoreCase(key[0])) {
@@ -963,11 +963,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
         keyMapSection = 0;
 
-        if (stack == null || stack.equals("no")) {
-            stackData = false;
-        } else {
-            stackData = true;
-        }
+        stackData = !(stack == null || stack.equals("no"));
     }
 
     public int getSkeyValueAt(int iTrace) {
@@ -978,18 +974,12 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
 
         if (skey.equals("tracf")) {
             return trace.getHeader().tracf;
-        } else {
-            if (skey.equals("offset")) {
-                return trace.getHeader().offset;
-            } else {
-                if (skey.equals("cdp")) {
-                    return trace.getHeader().cdp;
-                } else {
-                    if (skey.equals("fldr")) {
-                        return trace.getHeader().fldr;
-                    }
-                }
-            }
+        } else if (skey.equals("offset")) {
+            return trace.getHeader().offset;
+        } else if (skey.equals("cdp")) {
+            return trace.getHeader().cdp;
+        } else if (skey.equals("fldr")) {
+            return trace.getHeader().fldr;
         }
 
         return 0;
@@ -1003,14 +993,11 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
      * @param args the command line arguments
      */
     public static void main(final String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-
-            public void run() {
-                MainWindow wnd = new MainWindow();
-                wnd.setCommandLine(args);
-                wnd.initData();
-                wnd.setVisible(true);
-            }
+        invokeLater(() -> {
+            MainWindow wnd = new MainWindow();
+            wnd.setCommandLine(args);
+            wnd.initData();
+            wnd.setVisible(true);
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1084,7 +1071,7 @@ private void btnClipActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST
     int keyMapSection;
     float imageperc;
     float wigbperc;
-    ArrayList<Vector<SUTrace>> mapSection = new ArrayList<Vector<SUTrace>>();
+    List<List<SUTrace>> mapSection = new ArrayList<>();
     DialogHeaderTrace dlgHeader;
     DialogGain dlgGain;
     int m_currMapColor;

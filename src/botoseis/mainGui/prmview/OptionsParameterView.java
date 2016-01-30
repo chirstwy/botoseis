@@ -4,6 +4,11 @@
  */
 package botoseis.mainGui.prmview;
 
+import static botoseis.mainGui.prmview.ProcessParameter.KEYVALUEPAIR;
+import static botoseis.mainGui.prmview.ProcessParameter.OPTIONS_SELECTION_TEXT;
+import static java.lang.Integer.parseInt;
+import static java.lang.String.format;
+
 public class OptionsParameterView extends ParameterView {
 
     public OptionsParameterView(ProcessParameter p) {
@@ -26,7 +31,7 @@ public class OptionsParameterView extends ParameterView {
     @Override
     public void setValue(String v) {
         try{
-            m_input.setSelectedIndex(Integer.parseInt(v));
+            m_input.setSelectedIndex(parseInt(v));
         }catch(NumberFormatException e){
             int id = 0;
             
@@ -44,17 +49,17 @@ public class OptionsParameterView extends ParameterView {
 
     @Override
     public String getValue() {
-        if (m_prm.optionsListSelectionType.equalsIgnoreCase(ProcessParameter.OPTIONS_SELECTION_TEXT)) {
+        if (m_prm.optionsListSelectionType.equalsIgnoreCase(OPTIONS_SELECTION_TEXT)) {
             return m_input.getSelectedItem().toString();
         }        
-        String s = String.format("%d", m_input.getSelectedIndex());
+        String s = format("%d", m_input.getSelectedIndex());
         return s;
     }
     
     @Override
     public String getCommandLine() {
-        String ret = "";
-        if (m_prm.keyvaluePair.equalsIgnoreCase(ProcessParameter.KEYVALUEPAIR)) {
+        final String ret;
+        if (m_prm.keyvaluePair.equalsIgnoreCase(KEYVALUEPAIR)) {
             ret = m_prm.name + "=" + getValue();
         } else {
             ret = getValue();
@@ -68,5 +73,5 @@ public class OptionsParameterView extends ParameterView {
     }
     
     // Variables declaration
-    private javax.swing.JComboBox m_input = new javax.swing.JComboBox();
+    final private javax.swing.JComboBox m_input = new javax.swing.JComboBox();
 }

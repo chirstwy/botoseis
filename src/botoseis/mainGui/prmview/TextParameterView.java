@@ -1,5 +1,7 @@
 package botoseis.mainGui.prmview;
 
+import static botoseis.mainGui.prmview.ProcessParameter.KEYVALUEPAIR;
+
 /*
  * TextParameterView.java
  *
@@ -41,8 +43,8 @@ public class TextParameterView extends ParameterView {
 
     @Override
     public String getCommandLine() {
-        String ret = "";
-        if (m_prm.keyvaluePair.equalsIgnoreCase(ProcessParameter.KEYVALUEPAIR)) {
+        final String ret;
+        if (m_prm.keyvaluePair.equalsIgnoreCase(KEYVALUEPAIR)) {
             ret = m_prm.name + "=" + m_input.getText();
         }else{
             ret = m_input.getText();
@@ -50,5 +52,5 @@ public class TextParameterView extends ParameterView {
         return ret;
     }
     // Varaibles declaration
-    private javax.swing.JTextField m_input = new javax.swing.JTextField();
+    private final javax.swing.JTextField m_input = new javax.swing.JTextField();
 }

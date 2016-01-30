@@ -7,29 +7,43 @@ package botoseis.ivelan.temp;
 
 import botoseis.iview.dialogs.DialogGain;
 import botoseis.iview.dialogs.DialogHeaderTrace;
-import gfx.SVActor;
 import gfx.AxisPanel;
 import gfx.GfxPanelColorbar;
-import gfx.SVColorScale;
+import static gfx.GfxPanelColorbar.HORIZONTAL;
+import gfx.SVActor;
+import static gfx.SVAxis.AXIS_LEFT;
+import static gfx.SVAxis.AXIS_TOP;
+import static gfx.SVAxis.VERTICAL;
+import static gfx.SVColorScale.HSV;
+import static gfx.SVColorScale.RGB;
 import gfx.SVPoint2D;
 import gfx.SVXYPlot;
+import static gfx.SVXYPlot.SOLID;
 import java.awt.BorderLayout;
+import static java.awt.BorderLayout.CENTER;
+import static java.awt.BorderLayout.SOUTH;
+import static java.awt.Color.black;
+import static java.awt.Color.green;
+import static java.awt.Color.red;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.io.IOException;
+import static java.lang.Math.floor;
+import static java.lang.Math.round;
+import static java.lang.System.out;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Vector;
+import static java.util.Collections.sort;
+import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import static javax.swing.JFileChooser.APPROVE_OPTION;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
@@ -50,39 +64,35 @@ public class DataView extends javax.swing.JFrame {
         panelCDP.add(gfxPanelCDP);
         gfxPanelCDP.setVisibleScrollBar(true);
 
-        m_timeAxis = new gfx.SVAxis(gfx.SVAxis.VERTICAL, gfx.SVAxis.AXIS_LEFT, "Time (s)");
-        m_cdpOffsetAxis = new gfx.SVAxis(gfx.SVAxis.HORIZONTAL, gfx.SVAxis.AXIS_TOP, "CDP");
+        m_timeAxis = new gfx.SVAxis(VERTICAL, AXIS_LEFT, "Time (s)");
+        m_cdpOffsetAxis = new gfx.SVAxis(HORIZONTAL, AXIS_TOP, "CDP");
 
         m_timeAxis.setLimits(0.0f, 1.0f);
         m_cdpOffsetAxis.setLimits(0.0f, 1.0f);
 
         mHeader = new SVXYPlot();
-        mHeader.setLineStyle(gfx.SVXYPlot.SOLID);
+        mHeader.setLineStyle(SOLID);
         mHeader.setPointsVisible(true);
-        mHeader.setDrawColor(java.awt.Color.red);
+        mHeader.setDrawColor(red);
         mHeader.setDrawSize(1);
         mHeader.setVisible(true);
         gfxPanelCDP.addXYPlot(mHeader);
         m_currMapColor = 2;
 
-
-
-        lastVelocity.setLineStyle(gfx.SVXYPlot.SOLID);
+        lastVelocity.setLineStyle(SOLID);
         lastVelocity.setPointsVisible(false);
-        lastVelocity.setDrawColor(java.awt.Color.green);
+        lastVelocity.setDrawColor(green);
         lastVelocity.setVisible(false);
         lastVelocity.setDrawSize(2);
 
-
-        velocity.setLineStyle(gfx.SVXYPlot.SOLID);
+        velocity.setLineStyle(SOLID);
         velocity.setPointsVisible(false);
-        velocity.setDrawColor(java.awt.Color.black);
+        velocity.setDrawColor(black);
         velocity.setVisible(true);
         velocity.setDrawSize(2);
 
         gfxPanelCDP.addXYPlot(lastVelocity);
         gfxPanelCDP.addXYPlot(velocity);
-
 
         AxisPanel panelT = new AxisPanel(m_timeAxis);
         panelA.add(panelT);
@@ -100,31 +110,31 @@ public class DataView extends javax.swing.JFrame {
                 if (m_csActor != null) {
                     switch (e.getKeyChar()) {
                         case 'r':
-                            m_csActor.setColorMapType(SVColorScale.RGB);
+                            m_csActor.setColorMapType(RGB);
                             m_csActor.nextColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.RGB;
+                            m_currMapType = RGB;
                             break;
                         case 'h':
-                            m_csActor.setColorMapType(SVColorScale.HSV);
+                            m_csActor.setColorMapType(HSV);
                             m_csActor.nextColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.HSV;
+                            m_currMapType = HSV;
                             break;
                         case 'R':
-                            m_csActor.setColorMapType(SVColorScale.RGB);
+                            m_csActor.setColorMapType(RGB);
                             m_csActor.previousColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.RGB;
+                            m_currMapType = RGB;
                             break;
                         case 'H':
-                            m_csActor.setColorMapType(SVColorScale.HSV);
+                            m_csActor.setColorMapType(HSV);
                             m_csActor.previousColormap();
                             m_currMapColor = m_csActor.getCurrColorMapIndex();
-                            m_currMapType = SVColorScale.HSV;
+                            m_currMapType = HSV;
                             break;
                         default:
-                            m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, GfxPanelColorbar.HORIZONTAL);
+                            m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, HORIZONTAL);
                             colorbarPanel.removeAll();
                             colorbarPanel.add(m_gfxPanelColorbar);
                             break;
@@ -134,25 +144,26 @@ public class DataView extends javax.swing.JFrame {
                     m_gfxPanelColorbar.repaint();
                 }
 
-
             }
         });
 
         gfxPanelCDP.addMouseListener(new MouseListener() {
 
+            @Override
             public void mouseClicked(MouseEvent e) {
                 SVPoint2D sv = gfxPanelCDP.getMouseLocation();
                 int trc = m_csActor.getTraceAt(sv.fx, sv.fy);
 
-
                 int cdp = (int) ((mw.m_cdpMin) + (trc * d2));
-                System.out.println(trc + " " + cdp + " " + d2);
+                out.println(trc + " " + cdp + " " + d2);
                 mw.workOnCDP(cdp);
             }
 
+            @Override
             public void mousePressed(MouseEvent e) {
             }
 
+            @Override
             public void mouseReleased(java.awt.event.MouseEvent e) {
             }
 
@@ -161,23 +172,24 @@ public class DataView extends javax.swing.JFrame {
                 getGfxPanelCDP().requestFocus();
             }
 
+            @Override
             public void mouseExited(MouseEvent e) {
 //                throw new UnsupportedOperationException("Not supported yet.");
             }
         });
 
-
         gfxPanelCDP.addMouseMotionListener(new MouseMotionListener() {
 
+            @Override
             public void mouseDragged(MouseEvent e) {
             }
 
+            @Override
             public void mouseMoved(MouseEvent e) {
                 //throw new UnsupportedOperationException("Not supported yet.");
                 SVActor act = null;
 
                 act = m_csActor;
-
 
                 SVPoint2D p = getGfxPanelCDP().getMouseLocation();
                 float XlengthHI = f2;//=H(1).sx/scalco
@@ -187,8 +199,8 @@ public class DataView extends javax.swing.JFrame {
 
                 float dt = d1;//=dt do matlab = 0.004
 
-                int XMatr = Math.round((p.fx - XlengthHI) / distanciax) + 1;
-                int YMatr = Math.round((p.fy - delrt) / dt) + 1;
+                int XMatr = round((p.fx - XlengthHI) / distanciax) + 1;
+                int YMatr = round((p.fy - delrt) / dt) + 1;
 
                 int n_linhamaximo = n1;
                 int n = YMatr - 1 + (XMatr - 1) * (n_linhamaximo);
@@ -199,8 +211,6 @@ public class DataView extends javax.swing.JFrame {
             }
         });
 
-
-
         imageperc = 99;
         imagebalance = 100;
         wigbperc = 99;
@@ -209,12 +219,10 @@ public class DataView extends javax.swing.JFrame {
         panelPkey.setSize(new Dimension(74, 40));
         panelPkey.setPreferredSize(new Dimension(74, 40));
 //        panelPkey.setSize(new Dimension(74, 40));
-        m_currMapType = SVColorScale.HSV;
+        m_currMapType = HSV;
 
         dlgHeader = new DialogHeaderTrace(this, false);
         dlgGain = new DialogGain(this, true);
-
-
 
     }
 
@@ -361,16 +369,16 @@ private void menuSmoothVelocityActionPerformed(java.awt.event.ActionEvent evt) {
 
     if (dlg.isValid()) {
         int wcdp = dlg.getCdpWindow();
-        wndA = 1 + (int) Math.floor(wcdp / d2);
+        wndA = 1 + (int) floor(wcdp / d2);
 
         float wt = dlg.getTimeWindow();
-        wndB = 1 + (int) Math.floor(wt / d1);
+        wndB = 1 + (int) floor(wt / d1);
 
         int d = dlg.getCdpsInterval();
 //        dcdp = (int) (Math.floor(d / d2) * d2);
         dcdp = d;
         dt = dlg.getTimeInterval();
-        dtime = (float) (Math.floor(dt / d1) * d1);
+        dtime = (float) (floor(dt / d1) * d1);
 
         int ncdps = 0;
 //        float cdpMax = f2 + (n2 - 1) * d2;
@@ -394,10 +402,8 @@ private void menuSmoothVelocityActionPerformed(java.awt.event.ActionEvent evt) {
         float d1out = dtime;
         float d2out = dcdp;
 
-
         //resampleData(m_data, temp, m_n1, m_f1, m_d1, m_n2, m_f2, m_d2,
         //		 ntime, m_f1, d1out, ncdps, m_f2, d2out);
-
         float[][] data = new float[ncdps][ntime];
         float[] tdata = new float[ncdps * ntime];
         data = getDataInterp();
@@ -421,13 +427,10 @@ private void menuSmoothVelocityActionPerformed(java.awt.event.ActionEvent evt) {
                 n1, f1, d1, ncdps, f2, d2out);
 
 //                m_currData = data;
-
         m_data = temp;
         tdata = new float[ncdps * n1];
         for (int i = 0; i < ncdps; i++) {
-            for (int j = 0; j < n1; j++) {
-                tdata[i * n1 + j] = m_data[i][j];
-            }
+            System.arraycopy(m_data[i], 0, tdata, i * n1, n1);
         }
 
 //        m_currF1 = f1;
@@ -441,21 +444,19 @@ private void menuSmoothVelocityActionPerformed(java.awt.event.ActionEvent evt) {
         m_timeAxis.setLimits(f1, f1 + n1 * d1);
 //        m_cdpOffsetAxis.setLimits(f2, f2 + n2 * d2);
 
-
         m_cdpOffsetAxis.setLimits(f2, d2 * n2);
         m_cdpOffsetAxis.setLimitsInitial(f2, d2 * f2);
 
         panelB.repaint();
 
-        m_csActor = new gfx.SVColorScale(3, gfx.SVColorScale.NORMAL);
+        m_csActor = new gfx.SVColorScale(3, NORMAL);
         m_csActor.setData(tdata, n1, f1, d1, n2, f2, d2);
         m_csActor.setImagePerc(imageperc);
         m_csActor.setColormap(m_currMapType, m_currMapColor);
         getGfxPanelCDP().addActor(m_csActor);
-        m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, GfxPanelColorbar.HORIZONTAL);
+        m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, HORIZONTAL);
         colorbarPanel.removeAll();
         colorbarPanel.add(m_gfxPanelColorbar);
-
 
         repaint();
     }
@@ -466,13 +467,13 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         JFileChooser dlg = new JFileChooser("Save");
         int status = dlg.showSaveDialog(null);
 
-        if (status == JFileChooser.APPROVE_OPTION) {
+        if (status == APPROVE_OPTION) {
             InputCdps ic = new InputCdps(this);
             ic.setVisible(true);
-            String as = ic.jt1.getText().trim().equals("") ? mw.m_cdpMin + "" : ic.jt1.getText();
+            String as = ic.jt1.getText().trim().isEmpty() ? mw.m_cdpMin + "" : ic.jt1.getText();
             int icdp = new Integer(as);
 
-            as = ic.jt2.getText().trim().equals("") ? (mw.m_cdpInterval * m_currN2) + "" : ic.jt2.getText().trim();
+            as = ic.jt2.getText().trim().isEmpty() ? (mw.m_cdpInterval * m_currN2) + "" : ic.jt2.getText().trim();
             int ecdp = new Integer(as);
 
             int ncdps = (ecdp - icdp) + 1;
@@ -484,15 +485,11 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
             float[][] data = new float[mw.m_velocityPicks.size()][m_ns];
             int i2 = 0;
             for (Integer key : mw.m_velocityPicks.keySet()) {
-                Vector<gfx.SVPoint2D> picks = mw.m_velocityPicks.get(key);
-                Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
-
-                    @Override
-                    public int compare(SVPoint2D arg0, SVPoint2D arg1) {
-                        Float o1 = new Float(arg0.fy);
-                        Float o2 = new Float(arg1.fy);
-                        return o1.compareTo(o2);
-                    }
+                List<gfx.SVPoint2D> picks = mw.m_velocityPicks.get(key);
+                sort(picks, (SVPoint2D arg0, SVPoint2D arg1) -> {
+                    Float o1 = arg0.fy;
+                    Float o2 = arg1.fy;
+                    return o1.compareTo(o2);
                 });
                 if (picks.size() > 0) {
                     int nv = picks.size();
@@ -509,12 +506,11 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                     for (int iv = 0; iv < picks.size(); iv++) {
                         ta[k] = picks.get(iv).fy;
                         va[k] = picks.get(iv).fx;
-                        System.out.println(ta[k] + " ########## " + va[k]);
+                        out.println(ta[k] + " ########## " + va[k]);
                         k++;
                     }
 
                     // Create interpolated data
-
                     for (int it = 0; it < m_ns; it++) {
                         data[i2][it] = interpLinear(it * m_dt, ta, va);
 
@@ -530,7 +526,7 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                 int nskipTime = (int) (dtime / d1 - 1);
                 smoothData(data, ddata, data.length, n1, data.length, ntime, nskipCdp, nskipTime, wndA, wndB);
 
-                System.out.println(ntime + " " + f1 + " " + d1 + " " + n2 + " "
+                out.println(ntime + " " + f1 + " " + d1 + " " + n2 + " "
                         + f2 + " " + d2 + " " + n1 + " " + f1 + " " + dtime + " "
                         + ncdps + " " + f2 + " " + dcdp);
                 float[][] temp = new float[data.length][m_data[0].length];
@@ -540,35 +536,25 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
 
             }
 
-
-
             for (int i = 0; i < ncdps; i++) {
                 int inc = mw.m_cdpInterval - 1;
-                int v = 0;
-                v = (i / mw.m_cdpInterval) * mw.m_cdpInterval;
+                int v = (i / mw.m_cdpInterval) * mw.m_cdpInterval;
                 int v2 = v + mw.m_cdpInterval;
 
                 if (v == 0) {
 
-                    for (int it = 0; it < m_ns; it++) {
-                        data2[i][it] = data[0][it];
-                    }
+                    System.arraycopy(data[0], 0, data2[i], 0, m_ns);
+                } else if (v == mw.m_velocityPicks.lastKey()) {
+                    System.arraycopy(data[mw.m_velocityPicks.size() - 1], 0, data2[i], 0, m_ns);
                 } else {
-                    if (v == mw.m_velocityPicks.lastKey()) {
-                        for (int it = 0; it < m_ns; it++) {
-                            data2[i][it] = data[mw.m_velocityPicks.size() - 1][it];
-                        }
-                    } else {
-                        for (int it = 0; it < m_ns; it++) {
-                            float dx = (float) ((data[(v2 / mw.m_cdpInterval) - 1][it] - data[(v / mw.m_cdpInterval) - 1][it]) / (mw.m_cdpInterval - 1.0));
-                            int d = i - v - 1;
-                            data2[i][it] = data[(v / mw.m_cdpInterval) - 1][it] + (dx * d);
+                    for (int it = 0; it < m_ns; it++) {
+                        float dx = (float) ((data[(v2 / mw.m_cdpInterval) - 1][it] - data[(v / mw.m_cdpInterval) - 1][it]) / (mw.m_cdpInterval - 1.0));
+                        int d = i - v - 1;
+                        data2[i][it] = data[(v / mw.m_cdpInterval) - 1][it] + (dx * d);
 
-                        }
                     }
                 }
             }
-
 
 //            if (dtime != 0) {
 //                float[][] ddata = new float[ncdps][ntime];
@@ -586,32 +572,23 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
 //                data2 = temp.clone();
 //
 //            }
-
             java.io.File sFile = dlg.getSelectedFile();
-            java.io.FileOutputStream fs = new java.io.FileOutputStream(sFile);
-
-            SUTrace tr = new SUTrace();
-
-            tr.getHeader().f1 = m_currF1;
-            tr.getHeader().d1 = mw.m_dt;
-            tr.getHeader().f2 = m_currF2;
-            tr.getHeader().d2 = m_currD2;
-            tr.getHeader().ns = (char) n1;
-
-            float[] data3 = new float[m_currN1];
-            float a;
-            for (int i = 0; i < ncdps; i++) {
-                for (int j = 0; j < m_currN1; j++) {
-                    data3[j] = data2[i][j];
+            try (java.io.FileOutputStream fs = new java.io.FileOutputStream(sFile)) {
+                SUTrace tr = new SUTrace();
+                tr.getHeader().f1 = m_currF1;
+                tr.getHeader().d1 = mw.m_dt;
+                tr.getHeader().f2 = m_currF2;
+                tr.getHeader().d2 = m_currD2;
+                tr.getHeader().ns = (char) n1;
+                float[] data3 = new float[m_currN1];
+                float a;
+                for (int i = 0; i < ncdps; i++) {
+                    System.arraycopy(data2[i], 0, data3, 0, m_currN1);
+                    tr.getHeader().cdp = (int) icdp + i;
+                    tr.setData(data3);
+                    tr.writeToFile(fs, true);
                 }
-                tr.getHeader().cdp = (int) icdp + i;
-                tr.setData(data3);
-                tr.writeToFile(fs, true);
-            }
-
-            fs.close();
-
-            // Save same sampling of the original data
+                // Save same sampling of the original data
 //            float[][] rsData = new float[ncdps][n1];
 //
 //            resampleData(data2, rsData,
@@ -641,8 +618,6 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
 //                tr.setData(data3);
 //                tr.writeToFile(fs, true);
 //            }
-
-
 //            SUTrace tr = new SUTrace();
 //
 //            tr.getHeader().f1 = m_currF1;
@@ -695,11 +670,10 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
 //                tr.setData(data);
 //                tr.writeToFile(fs);
 //            }
-
 //            fs.close();
+            }
         }
-    } catch (Exception ex) {
-        ex.printStackTrace();
+    } catch (HeadlessException | NumberFormatException | IOException ex) {
     }// TODO add your handling code here:
 }//GEN-LAST:event_menuSaveActionPerformed
 
@@ -716,15 +690,11 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         float[][] data = new float[mw.m_velocityPicks.size()][m_ns];
         int i2 = 0;
         for (Integer key : mw.m_velocityPicks.keySet()) {
-            Vector<gfx.SVPoint2D> picks = mw.m_velocityPicks.get(key);
-            Collections.sort(picks, new Comparator<gfx.SVPoint2D>() {
-
-                @Override
-                public int compare(SVPoint2D arg0, SVPoint2D arg1) {
-                    Float o1 = new Float(arg0.fy);
-                    Float o2 = new Float(arg1.fy);
-                    return o1.compareTo(o2);
-                }
+            List<gfx.SVPoint2D> picks = mw.m_velocityPicks.get(key);
+            sort(picks, (SVPoint2D arg0, SVPoint2D arg1) -> {
+                Float o1 = arg0.fy;
+                Float o2 = arg1.fy;
+                return o1.compareTo(o2);
             });
             if (picks.size() > 0) {
                 int nv = picks.size();
@@ -741,12 +711,11 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
                 for (int iv = 0; iv < picks.size(); iv++) {
                     ta[k] = picks.get(iv).fy;
                     va[k] = picks.get(iv).fx;
-                    System.out.println(ta[k] + " ########## " + va[k]);
+                    out.println(ta[k] + " ########## " + va[k]);
                     k++;
                 }
 
                 // Create interpolated data
-
                 for (int it = 0; it < m_ns; it++) {
                     data[i2][it] = interpLinear(it * m_dt, ta, va);
 
@@ -762,7 +731,7 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
             int nskipTime = (int) (dtime / d1 - 1);
             smoothData(data, ddata, data.length, n1, data.length, ntime, nskipCdp, nskipTime, wndA, wndB);
 
-            System.out.println(ntime + " " + f1 + " " + d1 + " " + n2 + " "
+            out.println(ntime + " " + f1 + " " + d1 + " " + n2 + " "
                     + f2 + " " + d2 + " " + n1 + " " + f1 + " " + dtime + " "
                     + ncdps + " " + f2 + " " + dcdp);
             float[][] temp = new float[data.length][m_data[0].length];
@@ -772,31 +741,22 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
 
         }
 
-
-
         for (int i = 0; i < ncdps; i++) {
             int inc = mw.m_cdpInterval - 1;
-            int v = 0;
-            v = (i / mw.m_cdpInterval) * mw.m_cdpInterval;
+            int v = (i / mw.m_cdpInterval) * mw.m_cdpInterval;
             int v2 = v + mw.m_cdpInterval;
 
             if (v == 0) {
 
-                for (int it = 0; it < m_ns; it++) {
-                    data2[i][it] = data[0][it];
-                }
+                System.arraycopy(data[0], 0, data2[i], 0, m_ns);
+            } else if (v == mw.m_velocityPicks.lastKey()) {
+                System.arraycopy(data[mw.m_velocityPicks.size() - 1], 0, data2[i], 0, m_ns);
             } else {
-                if (v == mw.m_velocityPicks.lastKey()) {
-                    for (int it = 0; it < m_ns; it++) {
-                        data2[i][it] = data[mw.m_velocityPicks.size() - 1][it];
-                    }
-                } else {
-                    for (int it = 0; it < m_ns; it++) {
-                        float dx = (float) ((data[(v2 / mw.m_cdpInterval) - 1][it] - data[(v / mw.m_cdpInterval) - 1][it]) / (mw.m_cdpInterval - 1.0));
-                        int d = i - v - 1;
-                        data2[i][it] = data[(v / mw.m_cdpInterval) - 1][it] + (dx * d);
+                for (int it = 0; it < m_ns; it++) {
+                    float dx = (float) ((data[(v2 / mw.m_cdpInterval) - 1][it] - data[(v / mw.m_cdpInterval) - 1][it]) / (mw.m_cdpInterval - 1.0));
+                    int d = i - v - 1;
+                    data2[i][it] = data[(v / mw.m_cdpInterval) - 1][it] + (dx * d);
 
-                    }
                 }
             }
         }
@@ -905,9 +865,7 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     public void setFirstPlot(float[][] pData, float f1, float d1, int n1, float f2, float d2, int n2) {
         float[] data = new float[n1 * n2];
         for (int i = 0; i < n2; i++) {
-            for (int j = 0; j < n1; j++) {
-                data[(i * n1) + j] = pData[i][j];
-            }
+            System.arraycopy(pData[i], 0, data, i * n1, n1);
         }
         m_data = pData;
 
@@ -930,29 +888,27 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
         float ymax = f1 + n1 * d1;
 
 //        System.out.println("f1 "+f1+" d1"+d1+" n1 "+n1+" f2 "+f2+" d2 "+d2+" n2 "+n2 );
-        System.out.println("N1: " + n1 + " N2: " + n2 + " F1: " + f1 + " F2 " + f2 + " D1: " + d1 + " D2: " + d2);
+        out.println("N1: " + n1 + " N2: " + n2 + " F1: " + f1 + " F2 " + f2 + " D1: " + d1 + " D2: " + d2);
         getGfxPanelCDP().setAxesLimits(f1, (f1 + n1) * d1, f2, f2 + n2 * d2);
         m_timeAxis.setLimits(f1, (f1 + n1) * d1);
 //        m_cdpOffsetAxis.setLimits(f2, f2 + n2 * d2);
-
 
         m_cdpOffsetAxis.setLimits(f2, d2 * n2);
         m_cdpOffsetAxis.setLimitsInitial(f2, d2 * f2);
 
         panelB.repaint();
 
-        m_csActor = new gfx.SVColorScale(3, gfx.SVColorScale.NORMAL);
+        m_csActor = new gfx.SVColorScale(3, NORMAL);
         m_csActor.setData(data, n1, f1, d1, n2, f2, d2);
         m_csActor.setImagePerc(imageperc);
 //        m_csActor.setbalance(imagebalance);
         m_csActor.setColormap(m_currMapType, m_currMapColor);
 
         getGfxPanelCDP().addActor(m_csActor);
-        m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, GfxPanelColorbar.HORIZONTAL);
+        m_gfxPanelColorbar = new GfxPanelColorbar(m_csActor, HORIZONTAL);
 
         colorbarPanel.removeAll();
         colorbarPanel.add(m_gfxPanelColorbar);
-
 
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -1012,7 +968,7 @@ private void menuSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRS
     int keyMapSection;
     float imageperc;
     float wigbperc;
-    ArrayList<Vector<SUTrace>> mapSection = new ArrayList<Vector<SUTrace>>();
+    List<List<SUTrace>> mapSection = new ArrayList<>();
     DialogHeaderTrace dlgHeader;
     DialogGain dlgGain;
     int n1;
@@ -1082,16 +1038,12 @@ class InputCdps extends JDialog {
         jp.add(jt1);
         jp.add(new JLabel("Max:"));
         jp.add(jt2);
-        add(jp, BorderLayout.CENTER);
+        add(jp, CENTER);
         JButton jb = new JButton("OK");
-        jb.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent arg0) {
-                dispose();
-            }
+        jb.addActionListener((ActionEvent arg0) -> {
+            dispose();
         });
-        add(jb, BorderLayout.SOUTH);
+        add(jb, SOUTH);
 
     }
 }

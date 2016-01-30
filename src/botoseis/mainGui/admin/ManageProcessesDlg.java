@@ -5,13 +5,11 @@ package botoseis.mainGui.admin;
  *
  * Created on 20 de Dezembro de 2007, 10:15
  */
-import botoseis.mainGui.admin.EditProcessDlg;
 import botoseis.mainGui.prmview.ProcessParameter;
 import botoseis.mainGui.temp.MainWindow;
 import botoseis.mainGui.workflows.ParametersGroup;
 import botoseis.mainGui.workflows.ProcessModel;
 import java.util.Enumeration;
-import java.util.Vector;
 import javax.swing.tree.TreePath;
 import javax.swing.JOptionPane;
 
@@ -26,6 +24,7 @@ import java.io.IOException;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import botoseis.mainGui.utils.DefaultNode;
+import java.util.List;
 
 public class ManageProcessesDlg extends javax.swing.JDialog {
     MainWindow main;
@@ -95,7 +94,6 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
             outF.write("</BotoSeis>");
             outF.close();
         } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 
@@ -120,7 +118,6 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
             }
             pOutF.write(ind + "</Group>\n");
         } catch (IOException ex) {
-            ex.printStackTrace();
         }
 
     }
@@ -144,7 +141,6 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
             writeProcessParameters(pOutF, pProc, pIndent + 1);
             pOutF.write(ind + "</Process>\n");
         } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 
@@ -160,7 +156,6 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
             pOutF.write(ind + tab + "<email>" + pProc.getAuthorEmail() + "</email>\n");
             pOutF.write(ind + "</Author>\n");
         } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 
@@ -171,12 +166,12 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
             ind += tab;
         }
         try {
-            Vector<ParametersGroup> groups = pProc.getParameters();
+            List<ParametersGroup> groups = pProc.getParameters();
             for (int i = 0; i < groups.size(); i++) {
                 pOutF.write(ind + "<ParametersGroup>\n");
                 pOutF.write(ind + tab + "<Name>" + groups.get(i).getGroupName() + "</Name>\n");
                 pOutF.write(ind + tab + "<Description>" + groups.get(i).getDescription() + "</Description>\n");
-                Vector<ProcessParameter> params = groups.get(i).getParameters();
+                List<ProcessParameter> params = groups.get(i).getParameters();
                 for (int j = 0; j < params.size(); j++) {
                     pOutF.write(ind + tab + "<Parameter>\n");
                     ProcessParameter p = params.get(j);
@@ -204,7 +199,7 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
         String xmlFile = botov.toString() + "/proclist.xml";
 
         DOMParser parser = new DOMParser();
-        DefaultTreeModel treeModel = null;
+        DefaultTreeModel treeModel;
 
         DefaultNode root = new DefaultNode("All Processes",DefaultNode.DEFUALT_TYPE);
         treeModel = new DefaultTreeModel(root);
@@ -226,10 +221,7 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
                         break;
                 }
             }
-        } catch (SAXException se) {
-            se.printStackTrace();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        } catch (SAXException | IOException se) {
         }
 
         savedListModel = treeModel;
@@ -286,7 +278,7 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
         NodeList nodes = procNode.getChildNodes();
         int len = (nodes != null) ? nodes.getLength() : 0;
         Node node;
-        DefaultNode gleaf = null;
+        DefaultNode gleaf;
         ProcessModel proc = new ProcessModel();
         for (int i = 0; i < len; i++) {
             node = nodes.item(i);
@@ -813,7 +805,7 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
         EditProcessDlg dlg = new EditProcessDlg(null, true);
         dlg.setVisible(true);
         if (dlg.getResponseOk()) {
-            DefaultMutableTreeNode parent = null;
+            DefaultMutableTreeNode parent;
             TreePath tp = processesList.getSelectionPath();
             if (tp == null) {
                 parent = (DefaultMutableTreeNode) processesList.getModel().getRoot();
@@ -852,7 +844,7 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
                 pID += "-" + String.format("%d", today.getTimeInMillis());
                 proc.setID(pID);
 
-                java.util.Vector<ParametersGroup> grps = dlg.getParameters();
+                List<ParametersGroup> grps = dlg.getParameters();
                 for (int i = 0; i < grps.size(); i++) {
                     proc.addParametersGroup(grps.get(i));
                 }
@@ -889,10 +881,10 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
                         }
                     }
 
-                    Vector<ParametersGroup> pgList = proc.getParameters();
+                    List<ParametersGroup> pgList = proc.getParameters();
 
                     ParametersGroup group;
-                    Vector<ProcessParameter> prmList;
+                    List<ProcessParameter> prmList;
                     int count = 0;
                     for (int i = 0; i < pgList.size(); i++) {
                         group = pgList.get(i);
@@ -936,7 +928,7 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
         String title = JOptionPane.showInputDialog("Title");
 
         if (title != null) {
-            DefaultMutableTreeNode parent = null;
+            DefaultMutableTreeNode parent;
             DefaultMutableTreeNode sel;
             TreePath tp = processesList.getSelectionPath();
 
@@ -1034,12 +1026,8 @@ public class ManageProcessesDlg extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-
-            @Override
-            public void run() {
-                new ManageProcessesDlg(new javax.swing.JFrame(), true).setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new ManageProcessesDlg(new javax.swing.JFrame(), true).setVisible(true);
         });
     }
     static DefaultTreeModel savedListModel;

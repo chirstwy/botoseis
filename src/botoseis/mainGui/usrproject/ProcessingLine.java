@@ -14,14 +14,22 @@ import java.io.IOException;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import botoseis.mainGui.utils.DefaultNode;
+import static botoseis.mainGui.utils.DefaultNode.FLOW_TYPE;
+import static java.lang.System.getProperty;
+import java.util.ArrayList;
+import java.util.List;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static org.w3c.dom.Node.COMMENT_NODE;
+import static org.w3c.dom.Node.ELEMENT_NODE;
+import static org.w3c.dom.Node.TEXT_NODE;
 
 /**
  *
  */
 public class ProcessingLine {
 
-   public ProcessingLine(String home, String title) {
-        m_workflowsList = new java.util.Vector<botoseis.mainGui.workflows.WorkflowModel>();
+    public ProcessingLine(String home, String title) {
+        m_workflowsList = new ArrayList<>();
         m_selectedFlow = null;
         m_homeDir = home;
         m_title = title;
@@ -29,13 +37,13 @@ public class ProcessingLine {
 
     public void fillWorkflowsList(DefaultNode root) {
         for (int i = 0; i < m_workflowsList.size(); i++) {
-            DefaultMutableTreeNode node = new DefaultNode(m_workflowsList.get(i), DefaultNode.FLOW_TYPE);
+            DefaultMutableTreeNode node = new DefaultNode(m_workflowsList.get(i), FLOW_TYPE);
             root.add(node);
         }
     }
 
     public void open(String home) {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         m_homeDir = home;
         String xmlFile = m_homeDir + fsep + "info.xml";
 
@@ -51,17 +59,16 @@ public class ProcessingLine {
             for (int i = 0; i < len; i++) {
                 node = nodes.item(i);
                 switch (node.getNodeType()) {
-                    case Node.COMMENT_NODE:
+                    case COMMENT_NODE:
                         break;
-                    case Node.ELEMENT_NODE:
+                    case ELEMENT_NODE:
                         readElementNode(node);
                         break;
                 }
             }
         } catch (SAXException se) {
-            se.printStackTrace();
         } catch (IOException ioe) {
-            javax.swing.JOptionPane.showMessageDialog(null, "Problem");
+            showMessageDialog(null, "Problem");
         }
     }
 
@@ -72,9 +79,9 @@ public class ProcessingLine {
         for (int i = 0; i < len; i++) {
             node = nodes.item(i);
             switch (node.getNodeType()) {
-                case Node.TEXT_NODE:
+                case TEXT_NODE:
                     break;
-                case Node.ELEMENT_NODE:
+                case ELEMENT_NODE:
                     if (node.getNodeName().equalsIgnoreCase("title")) {
                         m_title = node.getChildNodes().item(0).getNodeValue();
                     }
@@ -85,7 +92,7 @@ public class ProcessingLine {
                     if (node.getNodeName().equalsIgnoreCase("workflow")) {
                         botoseis.mainGui.workflows.WorkflowModel newFlow = new botoseis.mainGui.workflows.WorkflowModel("", "");
                         String s = node.getChildNodes().item(0).getNodeValue();
-                        String fsep = System.getProperty("file.separator");
+                        String fsep = getProperty("file.separator");
                         newFlow.open(m_homeDir + fsep + s);
                         //m_workflowView.setModel(newFlow);
                         m_workflowsList.add(newFlow);
@@ -96,7 +103,7 @@ public class ProcessingLine {
     }
 
     public void save() {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String xmlFile = m_homeDir + fsep + "info.xml";
         File of = new File(xmlFile);
         FileWriter outF;
@@ -122,7 +129,7 @@ public class ProcessingLine {
     }
 
     public void reloadFlow() {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String xmlFile = m_homeDir + fsep + "info.xml";
         File of = new File(xmlFile);
         FileWriter outF;
@@ -159,7 +166,7 @@ public class ProcessingLine {
         }
 
         if (!titleDuplicated) {
-            String fsep = System.getProperty("file.separator");
+            String fsep = getProperty("file.separator");
             String apath = m_homeDir + fsep + pTitle;
             java.io.File f = new java.io.File(apath);
             if (f.mkdir()) {
@@ -190,7 +197,7 @@ public class ProcessingLine {
         return m_homeDir;
     }
 
-    public java.util.Vector<botoseis.mainGui.workflows.WorkflowModel> getWorkflowModel() {
+    public List<botoseis.mainGui.workflows.WorkflowModel> getWorkflowModel() {
         return m_workflowsList;
     }
 
@@ -205,7 +212,7 @@ public class ProcessingLine {
 
     public void rename(String newName) {
         this.m_title = newName;
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         File file = new File(m_homeDir);
         File rename = new File(file.getParent() + fsep + newName);
         file.renameTo(rename);
@@ -232,12 +239,12 @@ public class ProcessingLine {
     //   return m_selectedFlow;
     //}
     // Variable declarations
-    private java.util.Vector<botoseis.mainGui.workflows.WorkflowModel> m_workflowsList;
+    private List<botoseis.mainGui.workflows.WorkflowModel> m_workflowsList;
     private botoseis.mainGui.workflows.WorkflowModel m_selectedFlow;
     private String m_homeDir;
     private String m_title;
 
     public void setTitle(String title) {
-        this.m_title  = title;
+        this.m_title = title;
     }
 }

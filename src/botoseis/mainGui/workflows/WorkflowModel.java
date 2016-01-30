@@ -7,7 +7,8 @@ package botoseis.mainGui.workflows;
  *
  * 
  */
-import java.util.Enumeration;
+import static botoseis.mainGui.admin.ManageProcessesDlg.getProcess;
+import static botoseis.mainGui.utils.Utils.deleteFile;
 
 import java.io.*;
 import org.apache.xerces.parsers.DOMParser;
@@ -16,17 +17,25 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import java.io.IOException;
-import java.util.Vector;
-import botoseis.mainGui.workflows.WorkflowProcess;
+import java.util.List;
+import static java.lang.String.format;
+import static java.lang.System.getProperty;
+import java.util.ArrayList;
+import static javax.swing.JOptionPane.showMessageDialog;
+import static org.w3c.dom.Node.COMMENT_NODE;
+import static org.w3c.dom.Node.ELEMENT_NODE;
+import static org.w3c.dom.Node.TEXT_NODE;
 
 public class WorkflowModel extends java.util.Observable {
 
-    /** Creates a new instance of FlowchartModel */
+    /**
+     * Creates a new instance of FlowchartModel
+     */
     public WorkflowModel(String home, String title) {
         m_homeDir = home;
         m_title = title;
         m_nextProcessID = 0;
-        m_procList = new java.util.Vector<WorkflowProcess>();
+        m_procList = new ArrayList<>();
     }
 
     public String getHomedir() {
@@ -34,7 +43,7 @@ public class WorkflowModel extends java.util.Observable {
     }
 
     public void open(String home) {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         m_homeDir = home;
         String xmlFile = m_homeDir + fsep + "info.xml";
 
@@ -50,17 +59,16 @@ public class WorkflowModel extends java.util.Observable {
             for (int i = 0; i < len; i++) {
                 node = nodes.item(i);
                 switch (node.getNodeType()) {
-                    case Node.COMMENT_NODE:
+                    case COMMENT_NODE:
                         break;
-                    case Node.ELEMENT_NODE:
+                    case ELEMENT_NODE:
                         readElementNode(node);
                         break;
                 }
             }
         } catch (SAXException se) {
-            se.printStackTrace();
         } catch (IOException ioe) {
-            javax.swing.JOptionPane.showMessageDialog(null, "Problem");
+            showMessageDialog(null, "Problem");
         }
         setChanged();
         notifyObservers();
@@ -73,9 +81,9 @@ public class WorkflowModel extends java.util.Observable {
         for (int i = 0; i < len; i++) {
             node = nodes.item(i);
             switch (node.getNodeType()) {
-                case Node.TEXT_NODE:
+                case TEXT_NODE:
                     break;
-                case Node.ELEMENT_NODE:
+                case ELEMENT_NODE:
                     if (node.getNodeName().equalsIgnoreCase("title")) {
                         m_title = node.getChildNodes().item(0).getNodeValue();
                     }
@@ -99,15 +107,15 @@ public class WorkflowModel extends java.util.Observable {
         for (int i = 0; i < len; i++) {
             node = nodes.item(i);
             switch (node.getNodeType()) {
-                case Node.TEXT_NODE:
+                case TEXT_NODE:
                     break;
-                case Node.ELEMENT_NODE:
+                case ELEMENT_NODE:
                     if (node.getNodeName().equalsIgnoreCase("title")) {
                         String pTitle = node.getChildNodes().item(0).getNodeValue();
                     }
                     if (node.getNodeName().equalsIgnoreCase("processID")) {
                         String id = node.getChildNodes().item(0).getNodeValue();
-                        ProcessModel pm = botoseis.mainGui.admin.ManageProcessesDlg.getProcess(id);
+                        ProcessModel pm = getProcess(id);
                         botoseis.mainGui.prmview.ParametersPanel pp = new botoseis.mainGui.prmview.ParametersPanel(pm);
                         wp = new WorkflowProcess(pm, pp);
                         m_procList.add(wp);
@@ -128,7 +136,7 @@ public class WorkflowModel extends java.util.Observable {
     }
 
     public void save() {
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         String xmlFile = m_homeDir + fsep + "info.xml";
         File of = new File(xmlFile);
         FileWriter outF;
@@ -159,7 +167,7 @@ public class WorkflowModel extends java.util.Observable {
 
     public void moveProcessToTop(int index) {
         if ((index > 0) && (index < m_procList.size())) {
-            WorkflowProcess p = m_procList.elementAt(index);
+            WorkflowProcess p = m_procList.get(index);
             m_procList.remove(index);
             m_procList.add(0, p);
             setChanged();
@@ -169,7 +177,7 @@ public class WorkflowModel extends java.util.Observable {
 
     public void moveProcessToBottom(int index) {
         if ((index >= 0) && (index < (m_procList.size() - 1))) {
-            WorkflowProcess p = m_procList.elementAt(index);
+            WorkflowProcess p = m_procList.get(index);
             m_procList.remove(index);
             m_procList.add(p);
             setChanged();
@@ -177,21 +185,21 @@ public class WorkflowModel extends java.util.Observable {
         }
     }
 
-    public WorkflowModel clone(){
+    @Override
+    public WorkflowModel clone() {
         WorkflowModel clone = new WorkflowModel(m_homeDir, m_title);
-        Vector<WorkflowProcess> vector = new Vector<WorkflowProcess>();
+        List<WorkflowProcess> vector = new ArrayList<>();
         for (int i = 0; i < m_procList.size(); i++) {
             WorkflowProcess wp = m_procList.get(i);
             vector.add(wp.clone());
         }
         clone.m_procList = vector;
-
         return clone;
     }
 
     public void moveProcessUp(int index) {
         if ((index > 0) && (index < m_procList.size())) {
-            WorkflowProcess p = m_procList.elementAt(index);
+            WorkflowProcess p = m_procList.get(index);
             m_procList.remove(index);
             m_procList.add(index - 1, p);
             setChanged();
@@ -201,9 +209,9 @@ public class WorkflowModel extends java.util.Observable {
 
     public void moveProcessDown(int index) {
         if ((index >= 0) && (index < (m_procList.size() - 1))) {
-            WorkflowProcess p = m_procList.elementAt(index);
+            WorkflowProcess p = m_procList.get(index);
             m_procList.remove(index);
-            m_procList.add(index + 1, p);                       
+            m_procList.add(index + 1, p);
             setChanged();
             notifyObservers();
         }
@@ -213,7 +221,7 @@ public class WorkflowModel extends java.util.Observable {
         return m_title;
     }
 
-       public void setTitle(String title) {
+    public void setTitle(String title) {
         this.m_title = title;
     }
 
@@ -224,7 +232,7 @@ public class WorkflowModel extends java.util.Observable {
 
         String id = wp.getTitle() + "-";
 
-        id += String.format("%d", today.getTimeInMillis());
+        id += format("%d", today.getTimeInMillis());
 
         wp.setWorkflowID(id);
 
@@ -244,11 +252,11 @@ public class WorkflowModel extends java.util.Observable {
 
             String id = wp.getTitle() + "-";
 
-            id += String.format("%d", today.getTimeInMillis());
+            id += format("%d", today.getTimeInMillis());
 
             wp.setWorkflowID(id);
 
-            m_procList.add(position,wp);
+            m_procList.add(position, wp);
 
             setChanged();
             notifyObservers();
@@ -265,17 +273,17 @@ public class WorkflowModel extends java.util.Observable {
         notifyObservers();
     }
 
-    public Enumeration processes() {
-        return m_procList.elements();
+    public List<WorkflowProcess> processes() {
+        return m_procList;
     }
 
-    public java.util.Vector<WorkflowProcess> getProcList() {
+    public List<WorkflowProcess> getProcList() {
         return m_procList;
     }
 
     public void renameFlow(String newName) {
         this.m_title = newName;
-        String fsep = System.getProperty("file.separator");
+        String fsep = getProperty("file.separator");
         File file = new File(m_homeDir);
         File rename = new File(file.getParent() + fsep + newName);
         file.renameTo(rename);
@@ -288,8 +296,8 @@ public class WorkflowModel extends java.util.Observable {
         this.m_homeDir = path;
     }
 
-    public java.util.Vector<WorkflowProcess> getProcListExec() {
-        Vector<WorkflowProcess> procListExec = new Vector<WorkflowProcess>();
+    public List<WorkflowProcess> getProcListExec() {
+        List<WorkflowProcess> procListExec = new ArrayList<>();
         for (int i = 0; i < m_procList.size(); i++) {
             if (!m_procList.get(i).isReviewed()) {
                 procListExec.add(m_procList.get(i));
@@ -299,10 +307,8 @@ public class WorkflowModel extends java.util.Observable {
     }
 
     public void remove() {
-        botoseis.mainGui.utils.Utils.deleteFile(new File(m_homeDir));
+        deleteFile(new File(m_homeDir));
     }
-
-  
 
     //-------------------------------//
     @Override
@@ -310,7 +316,7 @@ public class WorkflowModel extends java.util.Observable {
         return m_title;
     }
     //
-    java.util.Vector<WorkflowProcess> m_procList;
+    List<WorkflowProcess> m_procList;
     //
     private int m_nextProcessID = 0;
     private String m_title;
@@ -319,9 +325,7 @@ public class WorkflowModel extends java.util.Observable {
     private int m_execProcessID;
     private WorkflowProcess m_execProcess;
 
-    public void setProcList(Vector<WorkflowProcess> procList) {
+    public void setProcList(List<WorkflowProcess> procList) {
         m_procList = procList;
     }
-
- 
 }

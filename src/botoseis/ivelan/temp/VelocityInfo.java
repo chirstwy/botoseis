@@ -20,7 +20,6 @@
  * 
  *
  */
-
 package botoseis.ivelan.temp;
 
 /**
@@ -28,18 +27,30 @@ package botoseis.ivelan.temp;
  *
  */
 public class VelocityInfo {
-    public VelocityInfo(float t, float v){
-	time = t;
-	vel = v;
+
+    public VelocityInfo(float t, float v) {
+        time = t;
+        vel = v;
     }
-    
-    float time;  /** Time value. */
-    float vel;   /** Velocity value. */
-    
+
+    float time;
+    /**
+     * Time value.
+     */
+    float vel;
+    /**
+     * Velocity value.
+     */
+
     // The variables px and py are the coordinate values, in pixels, of
     // the point given by the coordinates (vel, time). They are used
     // to check for picks selection over the velocity graphics panel.
-    int px;      /** Position X (pixels) on the velocities graphics panel. */
-    int py;      /** Position Y (pixels) on the velocities graphics panel. */
+    int px;
+    /**
+     * Position X (pixels) on the velocities graphics panel.
+     */
+    int py;
+    /**
+     * Position Y (pixels) on the velocities graphics panel.
+     */
 }
-
